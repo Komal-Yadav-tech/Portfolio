@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="midnight-blue" data-mode="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Komal Yadav — Creative Technologist & Full-Stack Architect</title>
+  <meta name="description" content="Ultra-modern portfolio of Komal Yadav featuring interactive 3D WebGL experiences, GSAP animations, and full-stack web applications.">
+  <meta name="keywords" content="Portfolio, Full-Stack Developer, Creative Technologist, Three.js, GSAP, WebGL, Node.js, UI/UX">
+  <meta property="og:title" content="Komal Yadav — Creative Technologist Portfolio">
+  <meta property="og:description" content="High-impact interactive web applications, 3D experiences, and full-stack engineering.">
+  <meta property="og:type" content="website">
+
+  <!-- Early Theme Init Script to Eliminate FOUC -->
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem('komal_portfolio_theme') || 'midnight-blue';
+      var savedMode = localStorage.getItem('komal_portfolio_mode') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.documentElement.setAttribute('data-mode', savedMode);
+    })();
+  </script>
+
+  <!-- Google Fonts & Font Awesome 6.5 Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Bebas+Neue&family=Caveat:wght@600;700&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Oswald:wght@500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sacramento&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="animations/effects.css">
+</head>
+<body>
+
+  <!-- Custom Interactive Magnetic Cursor -->
+  <div class="custom-cursor-dot"></div>
+  <div class="custom-cursor-ring"></div>
+
+  <!-- Three.js Ambient Particle Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- Ambient Light Orbs -->
+  <div class="ambient-glow glow-top-left"></div>
+  <div class="ambient-glow glow-bottom-right"></div>
+
+  <!-- Minimal Standalone Welcome / Landing Screen Overlay (Transitions smoothly to Hero section) -->
+  <div id="welcome-screen" class="welcome-screen-overlay">
+    <!-- Soft radial purple/violet glow aura centered directly behind the text -->
+    <div class="welcome-glow" aria-hidden="true"></div>
+
+    <!-- Centered Standalone Welcome Content -->
+    <div class="welcome-content">
+      <h1 class="welcome-heading">Welcome</h1>
+      <p class="welcome-subtext">CURATING DIGITAL PERFECTION</p>
+      
+      <!-- Small decorative element: 3 tiny dots -->
+      <div class="welcome-dots" aria-hidden="true">
+        <span class="welcome-dot"></span>
+        <span class="welcome-dot center-dot"></span>
+        <span class="welcome-dot"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-wrapper">
+
+    <!-- Sticky Header & Navigation -->
+    <header class="site-header">
+      <div class="container nav-container">
+        <a href="#home" class="brand-logo">
+          <span class="brand-name-text">KOMAL</span><span class="dot">.</span>
+        </a>
+
+        <!-- 6 Navbar Links: Home, About, Skills, Projects, Certifications, Contact -->
+        <nav>
+          <ul class="nav-menu">
+            <li><a href="#home" class="nav-link active">Home</a></li>
+            <li><a href="#about" class="nav-link">About</a></li>
+            <li><a href="#skills" class="nav-link">Skills</a></li>
+            <li><a href="#projects" class="nav-link">Projects</a></li>
+            <li><a href="#certifications" class="nav-link">Certifications</a></li>
+            <li><a href="#contact" class="nav-link">Contact</a></li>
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <button id="theme-mode-toggle" class="theme-toggle-btn" title="Toggle Dark/Light Mode" aria-label="Toggle Mode">
+            <i class="fas fa-sun"></i>
+          </button>
+          <button class="mobile-menu-toggle" aria-label="Open Mobile Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-nav-drawer">
+      <button class="mobile-drawer-close" aria-label="Close Menu">
+        <i class="fas fa-times"></i>
+      </button>
+      <ul class="mobile-menu-list">
+        <li><a href="#home" class="nav-link">Home</a></li>
+        <li><a href="#about" class="nav-link">About</a></li>
+        <li><a href="#skills" class="nav-link">Skills</a></li>
+        <li><a href="#projects" class="nav-link">Projects</a></li>
+        <li><a href="#certifications" class="nav-link">Certifications</a></li>
+        <li><a href="#contact" class="nav-link">Contact</a></li>
+        <li><a href="admin.html" class="nav-link" style="color: var(--accent-primary);">Admin Dashboard ➔</a></li>
+      </ul>
+      <div class="mobile-drawer-footer">
+        <p style="font-size: 0.85rem; color: var(--text-muted);">© 2026 Komal Yadav. Built with precision.</p>
+      </div>
+    </div>
+
+    <!-- 1. Hero Section (#home) -->
+    <section id="home" class="hero-section">
+      <div class="container hero-grid">
+        <div class="hero-text-content">
+          <div class="hero-greeting">
+            <span id="hero-greeting">Hello, I'm</span>
+            <span>✨</span>
+          </div>
+          <h1 id="hero-name" class="hero-name">KOMAL YADAV</h1>
+          <div id="hero-title" class="hero-title-gradient">Creative Technologist & Full-Stack Architect</div>
+          <p id="hero-bio" class="hero-bio">
+            Crafting ultra-performance digital experiences, animated web platforms, and scalable cloud architectures with bespoke UI/UX precision.
+          </p>
+
+          <div id="hero-availability-pill" class="availability-badge">
+            <span class="pulse-dot"></span> AVAILABLE FOR INTERNSHIP & CONTRACTS
+          </div>
+
+          <div class="hero-cta-group">
+            <a href="#projects" class="btn btn-primary">
+              <span>View Projects</span> <i class="fas fa-arrow-down"></i>
+            </a>
+            <a id="hero-resume-btn" href="/uploads/documents/sample-resume.pdf" target="_blank" class="btn btn-outline">
+              <i class="fas fa-file-arrow-down"></i> <span>Download CV</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="avatar-wrapper">
+            <div class="avatar-glow-ring"></div>
+            <div class="avatar-inner-frame">
+              <img id="hero-avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80" alt="Komal Yadav Profile Photo">
+            </div>
+            
+            <!-- Floating Stat Badge with updated stats: 5+ Certifications, 1+ Projects, 5+ Skills -->
+            <div class="floating-stat-badge">
+              <div class="stat-item">
+                <div id="stat-certs" class="stat-value">5+</div>
+                <div class="stat-label">Certifications</div>
+              </div>
+              <div class="stat-item">
+                <div id="stat-proj" class="stat-value">1+</div>
+                <div class="stat-label">Projects</div>
+              </div>
+              <div class="stat-item">
+                <div id="stat-skills" class="stat-value">5+</div>
+                <div class="stat-label">Skills</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. About, Education & Work Process Section (#about) -->
+    <section id="about" class="about-section">
+      <div class="container">
+        <div class="about-grid">
+          <div>
+            <span class="section-tag">[ BACKGROUND & VISION ]</span>
+            <h2 class="section-title" style="font-size: 2.4rem; margin-bottom: 1.5rem;">
+              Transforming Ideas Into <span>Living Digital Art</span>
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.8;">
+              With a deep passion at the intersection of graphic design, computer science, and creative engineering, I specialize in architecting interactive web applications that leave a lasting impression.
+            </p>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+              Every line of code is written with performance, accessibility, and aesthetic elegance in mind.
+            </p>
+          </div>
+
+          <div>
+            <h3 style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 1.2rem; color: var(--text-primary);">
+              <i class="fas fa-graduation-cap" style="color: var(--accent-primary);"></i> Academic Qualifications
+            </h3>
+            <div id="education-timeline" class="education-timeline">
+              <!-- Dynamic education records populated by script.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-Step Work Process -->
+        <div class="work-process-container">
+          <div class="section-header">
+            <span class="section-tag">[ HOW I WORK ]</span>
+            <h2 class="section-title">The 3-Step <span>Creative Workflow</span></h2>
+          </div>
+
+          <div class="process-grid">
+            <div class="process-step-card glass-sheen">
+              <div class="process-number">01</div>
+              <h3 class="process-title">DISCOVER & ANALYZE</h3>
+              <p class="process-desc">Deep-dive into objectives, target audience dynamics, technical constraints, and visual moodboards to establish a clear architectural roadmap.</p>
+            </div>
+
+            <div class="process-step-card glass-sheen">
+              <div class="process-number">02</div>
+              <h3 class="process-title">IDEATE & PROTOTYPE</h3>
+              <p class="process-desc">Iterative interactive prototyping, 3D WebGL asset experimentation, motion choreography, and high-fidelity design systems.</p>
+            </div>
+
+            <div class="process-step-card glass-sheen">
+              <div class="process-number">03</div>
+              <h3 class="process-title">ENGINEER & DEPLOY</h3>
+              <p class="process-desc">Full-stack implementation with clean modular code, lighthouse speed optimization, cross-device responsiveness, and continuous deployment.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stylized Quote Box -->
+        <div class="quote-card-box">
+          <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+          <div id="quote-text" class="quote-content">
+            "Design is not just what it looks like and feels like. Design is how it works."
+          </div>
+          <div id="quote-author" class="quote-signature-author">Steve Jobs</div>
+          <div id="quote-role" class="quote-role">Apple Co-founder & Visionary</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Skills & Core Proficiencies Section (#skills) -->
+    <section id="skills" class="skills-section marquee-section">
+      <div class="container" style="margin-bottom: 2.5rem;">
+        <div class="section-header">
+          <span id="skills-tag" class="section-tag">[ TECHNICAL PROFICIENCIES ]</span>
+          <h2 id="skills-title" class="section-title">Core Technologies & <span>Masteries</span></h2>
+          <p id="skills-desc" class="section-desc">Extensive toolkit covering frontend aesthetics, 3D WebGL computation, and robust backend engineering.</p>
+        </div>
+      </div>
+
+      <!-- Infinite Skills Marquee -->
+      <div class="marquee-track" id="skills-marquee-track">
+        <div class="marquee-item"><i class="fab fa-js-square"></i> JAVASCRIPT ES6+</div>
+        <div class="marquee-item"><i class="fas fa-cube"></i> THREE.JS / WEBGL</div>
+        <div class="marquee-item"><i class="fas fa-wand-magic-sparkles"></i> GSAP ANIMATIONS</div>
+        <div class="marquee-item"><i class="fab fa-node-js"></i> NODE.JS & EXPRESS</div>
+        <div class="marquee-item"><i class="fab fa-react"></i> REACT & NEXT.JS</div>
+        <div class="marquee-item"><i class="fas fa-database"></i> SQLITE & MONGODB</div>
+        <div class="marquee-item"><i class="fab fa-python"></i> PYTHON / AI APIS</div>
+        <div class="marquee-item"><i class="fab fa-docker"></i> DOCKER & CLOUD</div>
+        <div class="marquee-item"><i class="fab fa-figma"></i> BESPOKE UI/UX</div>
+        <!-- Duplicate for continuous loop -->
+        <div class="marquee-item"><i class="fab fa-js-square"></i> JAVASCRIPT ES6+</div>
+        <div class="marquee-item"><i class="fas fa-cube"></i> THREE.JS / WEBGL</div>
+        <div class="marquee-item"><i class="fas fa-wand-magic-sparkles"></i> GSAP ANIMATIONS</div>
+        <div class="marquee-item"><i class="fab fa-node-js"></i> NODE.JS & EXPRESS</div>
+        <div class="marquee-item"><i class="fab fa-react"></i> REACT & NEXT.JS</div>
+        <div class="marquee-item"><i class="fas fa-database"></i> SQLITE & MONGODB</div>
+        <div class="marquee-item"><i class="fab fa-python"></i> PYTHON / AI APIS</div>
+        <div class="marquee-item"><i class="fab fa-docker"></i> DOCKER & CLOUD</div>
+        <div class="marquee-item"><i class="fab fa-figma"></i> BESPOKE UI/UX</div>
+      </div>
+    </section>
+
+    <!-- 4. Projects Section (#projects) -->
+    <section id="projects" class="projects-section">
+      <div class="container">
+        <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+          <span class="section-tag">[ FEATURED CREATIONS ]</span>
+          <h2 class="section-title">Selected <span>Works & Experiments</span></h2>
+        </div>
+
+        <div class="horizontal-scroll-wrapper" id="projects-wrapper">
+          <div class="horizontal-track" id="projects-track">
+            <!-- Dynamic project cards populated by script.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Certifications & Accreditations Section (#certifications) -->
+    <section id="certifications" class="certifications-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">[ ACCREDITATIONS & HONORS ]</span>
+          <h2 class="section-title">Verified <span>Certifications & Masteries</span></h2>
+          <p class="section-desc">Continuous growth through rigorous industry certifications and specialized masterclasses.</p>
+        </div>
+
+        <div id="certs-grid" class="certs-grid">
+          <!-- Dynamic certifications populated by script.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Client Testimonials & Services Component Area -->
+    <section id="testimonials" class="testimonials-section">
+      <div class="container">
+        <div class="reviews-header-flex">
+          <div>
+            <span class="section-tag">[ TESTIMONIALS ]</span>
+            <h2 class="section-title">Client <span>Endorsements</span></h2>
+          </div>
+          <button id="open-review-modal-btn" class="btn btn-primary">
+            <i class="fas fa-pen-nib"></i> <span>Give a Review</span>
+          </button>
+        </div>
+
+        <div id="reviews-grid" class="reviews-grid">
+          <!-- Dynamic approved reviews populated by script.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Custom Dynamic Content Block Injector Area -->
+    <section class="custom-blocks-section">
+      <div class="container" id="custom-blocks-container">
+        <!-- Dynamic arbitrary HTML blocks populated by script.js -->
+      </div>
+    </section>
+
+    <!-- 6. Footer & Contact Section (#contact) -->
+    <footer id="contact" class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-cta-headline">
+              LET'S BUILD <span>SOMETHING ICONIC</span> ✦
+            </div>
+            <p style="color: var(--text-secondary); max-width: 550px; font-size: 1.1rem; margin-bottom: 2rem;">
+              Have a visionary project or need a full-stack engineer who values craft and performance? Reach out directly.
+            </p>
+
+            <div class="contact-items-list">
+              <a id="footer-email" href="mailto:komal.creative@example.com" class="contact-link-item">
+                <i class="fas fa-envelope"></i> <span>komal.creative@example.com</span>
+              </a>
+              <a id="footer-phone" href="tel:+919876543210" class="contact-link-item">
+                <i class="fas fa-phone"></i> <span>+91 98765 43210</span>
+              </a>
+              <div class="contact-link-item">
+                <i class="fas fa-location-dot"></i> <span id="footer-location">Bangalore, India & Remote Worldwide</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+              <a id="footer-linkedin" href="https://linkedin.com" target="_blank" class="theme-toggle-btn" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+              <a id="footer-github" href="https://github.com" target="_blank" class="theme-toggle-btn" aria-label="GitHub"><i class="fab fa-github"></i></a>
+              <a id="footer-twitter" href="https://twitter.com" target="_blank" class="theme-toggle-btn" aria-label="Twitter"><i class="fab fa-x-twitter"></i></a>
+            </div>
+          </div>
+
+          <!-- Dynamic Footer Highlight Box -->
+          <div class="dynamic-footer-box">
+            <div>
+              <h4 id="footer-box-title">Ready to launch?</h4>
+              <div id="footer-box-content" class="content">
+                <p>Available for high-impact full-stack development, creative frontend engineering, and interactive 3D web applications.</p>
+              </div>
+            </div>
+            <a id="footer-cta-btn" href="mailto:komal.creative@example.com?subject=Project%20Inquiry%20from%20Portfolio" class="btn btn-primary" style="align-self: flex-start;">
+              <span>Start A Conversation</span> <i class="fas fa-paper-plane"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-bottom-bar">
+          <div>© 2026 Komal Yadav. All rights reserved.</div>
+          <div>Powered by Custom Node.js & Express CMS Panel</div>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- MODAL: Public Review Submission -->
+  <div id="review-modal" class="modal-backdrop">
+    <div class="modal-box">
+      <button id="close-review-modal-btn" class="modal-close-btn" aria-label="Close Modal">
+        <i class="fas fa-times"></i>
+      </button>
+      <h3 class="modal-title">Write a Review</h3>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        Share your experience. Reviews are published following moderation.
+      </p>
+
+      <form id="public-review-form">
+        <div class="form-group">
+          <label class="form-label" for="reviewer-name-input">Your Full Name *</label>
+          <input type="text" id="reviewer-name-input" class="form-control" placeholder="e.g. Sarah Jenkins" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reviewer-role-input">Role & Company *</label>
+          <input type="text" id="reviewer-role-input" class="form-control" placeholder="e.g. Design Director, Apex Studios" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Rating *</label>
+          <div class="star-rating-select" id="star-rating-picker">
+            <i class="fas fa-star active" data-rating="1"></i>
+            <i class="fas fa-star active" data-rating="2"></i>
+            <i class="fas fa-star active" data-rating="3"></i>
+            <i class="fas fa-star active" data-rating="4"></i>
+            <i class="fas fa-star active" data-rating="5"></i>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="review-text-input">Your Review (Max 300 characters) *</label>
+          <textarea id="review-text-input" class="form-control" rows="4" maxlength="300" placeholder="Share your experience working with Komal..." required></textarea>
+          <div id="review-char-count" class="char-counter">0/300</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+          <span>Submit Review For Moderation</span> <i class="fas fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Certificate Image Viewer -->
+  <div id="cert-modal" class="modal-backdrop">
+    <div class="modal-box cert-modal-box">
+      <button id="close-cert-modal-btn" class="modal-close-btn" aria-label="Close Modal">
+        <i class="fas fa-times"></i>
+      </button>
+      <h3 id="cert-modal-title" class="modal-title" style="margin-bottom: 1rem;">Certificate View</h3>
+      <img id="cert-modal-img" src="" alt="Certificate Preview" class="cert-modal-img">
+    </div>
+  </div>
+
+  <!-- CDNs for Animations -->
+  <!-- Three.js r128 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- GSAP 3 & ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <!-- Studio Freight Lenis Smooth Scroll -->
+  <script src="https://unpkg.com/lenis@1.1.9/dist/lenis.min.js"></script>
+
+  <!-- Modular Scripts -->
+  <script src="script.js"></script>
+  <script src="animations/three-scene.js"></script>
+  <script src="animations/lenis-setup.js"></script>
+  <script src="animations/cursor.js"></script>
+  <script src="animations/magnetic.js"></script>
+  <script src="animations/app.js"></script>
+</body>
+</html>

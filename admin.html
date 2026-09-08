@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMS Admin Panel — Komal Portfolio</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <!-- 1. LOGIN OVERLAY -->
+  <div id="admin-login-screen">
+    <div class="login-card">
+      <div class="login-logo">CMS ADMIN</div>
+      <p class="login-subtitle">Portfolio Content Management & Moderation</p>
+      
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label class="form-label" style="text-align: left;" for="login-username">Username</label>
+          <input type="text" id="login-username" class="form-control" placeholder="admin" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="text-align: left;" for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <div style="font-size: 0.8rem; color: var(--admin-text-muted); margin-bottom: 1.5rem; text-align: left;">
+          Default seeded credentials: <code>admin</code> / <code>admin123</code>
+        </div>
+        <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center;">
+          <i class="fas fa-lock-open"></i> Login to Dashboard
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. SIDEBAR NAVIGATION -->
+  <aside class="admin-sidebar">
+    <div>
+      <div class="sidebar-brand">
+        <div class="brand-icon"><i class="fas fa-shield-halved"></i></div>
+        <div class="brand-text-wrapper">
+          <h2>Komal CMS</h2>
+          <span>Admin Portal</span>
+        </div>
+      </div>
+
+      <nav class="nav-links-group">
+        <button class="nav-tab-btn active" data-tab="overview">
+          <i class="fas fa-chart-pie"></i> Overview
+        </button>
+        <button class="nav-tab-btn" data-tab="profile">
+          <i class="fas fa-user-gear"></i> Profile & Bio
+        </button>
+        <button class="nav-tab-btn" data-tab="skills">
+          <i class="fas fa-microchip"></i> Skills & Tech
+        </button>
+        <button class="nav-tab-btn" data-tab="projects">
+          <i class="fas fa-layer-group"></i> Portfolio Projects
+        </button>
+        <button class="nav-tab-btn" data-tab="education">
+          <i class="fas fa-graduation-cap"></i> Education
+        </button>
+        <button class="nav-tab-btn" data-tab="certifications">
+          <i class="fas fa-certificate"></i> Certifications
+        </button>
+        <button class="nav-tab-btn" data-tab="reviews">
+          <i class="fas fa-star-half-stroke"></i> Reviews Moderation
+          <span id="pending-reviews-badge" class="nav-badge-pill" style="display: none;">0</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="themes">
+          <i class="fas fa-palette"></i> 12 Luxury Themes
+        </button>
+        <button class="nav-tab-btn" data-tab="quote-process">
+          <i class="fas fa-quote-left"></i> Quote Box
+        </button>
+        <button class="nav-tab-btn" data-tab="custom-blocks">
+          <i class="fas fa-code"></i> Custom HTML Blocks
+        </button>
+        <button class="nav-tab-btn" data-tab="footer-box">
+          <i class="fas fa-window-maximize"></i> Footer Box
+        </button>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom-actions">
+      <a href="index.html" target="_blank" class="admin-btn admin-btn-outline" style="width: 100%; justify-content: center;">
+        <i class="fas fa-arrow-up-right-from-square"></i> View Live Site
+      </a>
+      <button id="admin-logout-btn" class="admin-btn admin-btn-danger" style="width: 100%; justify-content: center;">
+        <i class="fas fa-right-from-bracket"></i> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- 3. MAIN DASHBOARD CONTENT -->
+  <main class="admin-main-content">
+    <div class="admin-top-header">
+      <div class="header-title-box">
+        <h1 id="tab-heading-title">Dashboard Overview</h1>
+        <p id="tab-heading-subtitle">Real-time content management and live website synchronization</p>
+      </div>
+      <div class="admin-header-actions">
+        <span id="admin-user-pill" class="status-badge approved"><i class="fas fa-circle-user"></i> admin</span>
+      </div>
+    </div>
+
+    <!-- TAB 1: OVERVIEW -->
+    <div id="tab-overview" class="tab-panel active">
+      <div class="form-row">
+        <div class="admin-card" style="text-align: center;">
+          <div style="font-size: 2.5rem; color: var(--admin-accent); font-weight: 800;" id="count-projects">0</div>
+          <div style="color: var(--admin-text-sub); text-transform: uppercase; font-size: 0.85rem;">Total Projects</div>
+        </div>
+        <div class="admin-card" style="text-align: center;">
+          <div style="font-size: 2.5rem; color: #06b6d4; font-weight: 800;" id="count-skills">0</div>
+          <div style="color: var(--admin-text-sub); text-transform: uppercase; font-size: 0.85rem;">Skills & Tech</div>
+        </div>
+        <div class="admin-card" style="text-align: center;">
+          <div style="font-size: 2.5rem; color: #10b981; font-weight: 800;" id="count-education">0</div>
+          <div style="color: var(--admin-text-sub); text-transform: uppercase; font-size: 0.85rem;">Education Records</div>
+        </div>
+        <div class="admin-card" style="text-align: center;">
+          <div style="font-size: 2.5rem; color: #a855f7; font-weight: 800;" id="count-certs">0</div>
+          <div style="color: var(--admin-text-sub); text-transform: uppercase; font-size: 0.85rem;">Certifications</div>
+        </div>
+        <div class="admin-card" style="text-align: center;">
+          <div style="font-size: 2.5rem; color: #f59e0b; font-weight: 800;" id="count-pending-reviews">0</div>
+          <div style="color: var(--admin-text-sub); text-transform: uppercase; font-size: 0.85rem;">Pending Reviews</div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-bolt"></i> Quick System Status</h2>
+        </div>
+        <p style="color: var(--admin-text-sub); margin-bottom: 1rem;">
+          Database: <strong>SQLite3 (portfolio.db)</strong> • Auth Mode: <strong>JWT HttpOnly Sessions</strong> • Real-Time Synchronization: <strong>Enabled</strong>
+        </p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <button class="admin-btn admin-btn-primary" onclick="switchTab('profile')">Update Profile</button>
+          <button class="admin-btn admin-btn-outline" onclick="switchTab('reviews')">Moderate Reviews</button>
+          <button class="admin-btn admin-btn-outline" onclick="switchTab('themes')">Switch Theme</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: PROFILE & BIO -->
+    <div id="tab-profile" class="tab-panel">
+      <form id="profile-update-form" class="admin-card" enctype="multipart/form-data">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-id-card"></i> Personal Information & Bio</h2>
+          <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-floppy-disk"></i> Save Changes</button>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="p-full-name">Full Name</label>
+            <input type="text" id="p-full-name" name="full_name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-title">Professional Title</label>
+            <input type="text" id="p-title" name="title" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="p-greeting">Hero Greeting Text</label>
+            <input type="text" id="p-greeting" name="greeting" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-avail">Availability Status Pill</label>
+            <input type="text" id="p-avail" name="availability_status" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="p-bio">Bio / Description</label>
+          <textarea id="p-bio" name="bio" class="form-control" rows="3" required></textarea>
+        </div>
+
+        <div class="card-title-bar" style="margin-top: 2rem;">
+          <h2><i class="fas fa-file-arrow-up"></i> Avatar Image & Resume Document</h2>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Profile Avatar Image</label>
+            <img id="p-avatar-preview" src="" class="preview-thumb" alt="Avatar Preview">
+            <input type="file" id="p-avatar-file" name="profile_image_file" accept="image/*" class="form-control">
+            <input type="text" id="p-avatar-url" name="profile_image" class="form-control" placeholder="Or paste image URL" style="margin-top: 0.5rem;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Resume Document (PDF / DOCX)</label>
+            <div id="p-resume-status" style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--admin-accent);"></div>
+            <input type="file" id="p-resume-file" name="resume_file" accept=".pdf,.doc,.docx" class="form-control">
+            <input type="text" id="p-resume-url" name="resume_url" class="form-control" placeholder="Or document URL" style="margin-top: 0.5rem;">
+          </div>
+        </div>
+
+        <div class="card-title-bar" style="margin-top: 2rem;">
+          <h2><i class="fas fa-chart-line"></i> Floating Stats Counters (Hero Banner)</h2>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="p-stat-exp">Certifications</label>
+            <input type="text" id="p-stat-exp" name="stats_experience" class="form-control" placeholder="5+">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-stat-proj">Projects</label>
+            <input type="text" id="p-stat-proj" name="stats_projects" class="form-control" placeholder="1+">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-stat-clients">Skills</label>
+            <input type="text" id="p-stat-clients" name="stats_clients" class="form-control" placeholder="5+">
+          </div>
+        </div>
+
+        <div class="card-title-bar" style="margin-top: 2rem;">
+          <h2><i class="fas fa-address-book"></i> Contact & Social Links</h2>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="p-email">Email Address</label>
+            <input type="email" id="p-email" name="email" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-phone">Phone / WhatsApp</label>
+            <input type="text" id="p-phone" name="phone" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-location">Location</label>
+            <input type="text" id="p-location" name="location" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="p-linkedin">LinkedIn URL</label>
+            <input type="url" id="p-linkedin" name="linkedin" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-github">GitHub URL</label>
+            <input type="url" id="p-github" name="github" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-twitter">Twitter / X URL</label>
+            <input type="url" id="p-twitter" name="twitter" class="form-control">
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- TAB: SKILLS -->
+    <div id="tab-skills" class="tab-panel">
+      <!-- 1. Section Header & Subtitle Form -->
+      <form id="skills-header-form" class="admin-card" style="margin-bottom: 2rem;">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-heading"></i> Skills Section Tag, Heading & Description</h2>
+          <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-floppy-disk"></i> Save Header</button>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="sk-sec-tag">Section Tag</label>
+            <input type="text" id="sk-sec-tag" name="skills_tag" class="form-control" placeholder="[ TECHNICAL PROFICIENCIES ]">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="sk-sec-title">Section Main Title</label>
+            <input type="text" id="sk-sec-title" name="skills_title" class="form-control" placeholder="Core Technologies & <span>Masteries</span>">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="sk-sec-desc">Section Subtitle / Description</label>
+          <textarea id="sk-sec-desc" name="skills_desc" class="form-control" rows="2" placeholder="Extensive toolkit covering frontend aesthetics, 3D WebGL computation, and robust backend engineering."></textarea>
+        </div>
+      </form>
+
+      <!-- 2. Individual Skills Management -->
+      <div class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-microchip"></i> Manage Skills & Technologies (Marquee Ticker)</h2>
+          <button class="admin-btn admin-btn-primary" onclick="openAddSkillModal()">
+            <i class="fas fa-plus"></i> Add Skill
+          </button>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Icon</th>
+                <th>Skill Name</th>
+                <th>Sort Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="skills-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: PROJECTS -->
+    <div id="tab-projects" class="tab-panel">
+      <div class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-layer-group"></i> Portfolio Projects</h2>
+          <button class="admin-btn admin-btn-primary" onclick="openAddProjectModal()">
+            <i class="fas fa-plus"></i> Add Project
+          </button>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Thumbnail</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Featured</th>
+                <th>Links</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="projects-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: EDUCATION -->
+    <div id="tab-education" class="tab-panel">
+      <div class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-graduation-cap"></i> Academic Qualifications</h2>
+          <button class="admin-btn admin-btn-primary" onclick="openAddEducationModal()">
+            <i class="fas fa-plus"></i> Add Education
+          </button>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Degree / Course</th>
+                <th>Institution</th>
+                <th>Passing Year</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="education-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: CERTIFICATIONS -->
+    <div id="tab-certifications" class="tab-panel">
+      <div class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-certificate"></i> Certifications & Awards</h2>
+          <button class="admin-btn admin-btn-primary" onclick="openAddCertModal()">
+            <i class="fas fa-plus"></i> Add Certification
+          </button>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Preview</th>
+                <th>Certification Title</th>
+                <th>Issuer</th>
+                <th>Issue Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="certs-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 7: REVIEWS MODERATION -->
+    <div id="tab-reviews" class="tab-panel">
+      <div class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-star-half-stroke"></i> Client Reviews Moderation Center</h2>
+          <button class="admin-btn admin-btn-primary" onclick="openAddReviewModal()">
+            <i class="fas fa-plus"></i> Add Manual Review
+          </button>
+        </div>
+
+        <div class="filter-tabs-row">
+          <button class="filter-tab-btn active" onclick="filterReviews('all', this)">All</button>
+          <button class="filter-tab-btn" onclick="filterReviews('pending', this)">Pending Moderation</button>
+          <button class="filter-tab-btn" onclick="filterReviews('approved', this)">Approved</button>
+          <button class="filter-tab-btn" onclick="filterReviews('rejected', this)">Rejected</button>
+        </div>
+
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Client Name</th>
+                <th>Role / Company</th>
+                <th>Rating</th>
+                <th>Review Text</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reviews-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 8: 12 LUXURY THEMES SWITCHER -->
+    <div id="tab-themes" class="tab-panel">
+      <div class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-palette"></i> 12 Luxury Dynamic Themes</h2>
+          <span style="font-size: 0.85rem; color: var(--admin-text-sub);">Click any card to immediately switch global live theme</span>
+        </div>
+
+        <div class="theme-presets-grid" id="themes-grid">
+          <!-- 12 Theme cards dynamically generated by admin.js -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 9: QUOTE & PROCESS -->
+    <div id="tab-quote-process" class="tab-panel">
+      <form id="quote-update-form" class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-quote-left"></i> Inspirational Quote Box</h2>
+          <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-floppy-disk"></i> Update Quote</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="q-text">Quote Content</label>
+          <textarea id="q-text" class="form-control" rows="3" required></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="q-author">Author Name (renders in cursive signature)</label>
+            <input type="text" id="q-author" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="q-role">Author Title / Role</label>
+            <input type="text" id="q-role" class="form-control">
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- TAB 10: CUSTOM CONTENT BLOCKS -->
+    <div id="tab-custom-blocks" class="tab-panel">
+      <div class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-code"></i> Custom HTML Content Blocks</h2>
+          <button class="admin-btn admin-btn-primary" onclick="openAddCustomBlockModal()">
+            <i class="fas fa-plus"></i> Add HTML Block
+          </button>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Block Title</th>
+                <th>Active</th>
+                <th>Sort Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="custom-blocks-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 11: FOOTER BOX -->
+    <div id="tab-footer-box" class="tab-panel">
+      <form id="footer-box-form" class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-window-maximize"></i> Dynamic Footer Highlight Card</h2>
+          <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-floppy-disk"></i> Save Footer Box</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fb-title">Highlight Title</label>
+          <input type="text" id="fb-title" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fb-content">Rich Text / HTML Description</label>
+          <textarea id="fb-content" class="form-control" rows="5" required></textarea>
+        </div>
+      </form>
+    </div>
+
+  </main>
+
+  <!-- ==========================================================================
+       MODALS FOR CRUD OPERATIONS
+       ========================================================================== -->
+
+  <!-- Generic Item CRUD Modal Container -->
+  <div id="admin-crud-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 100000; display: none; align-items: center; justify-content: center; padding: 1.5rem;">
+    <div class="admin-card" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative;">
+      <button onclick="closeCrudModal()" style="position: absolute; top: 1.2rem; right: 1.2rem; font-size: 1.2rem; color: var(--admin-text-sub); border: none; background: none; cursor: pointer;">
+        <i class="fas fa-times"></i>
+      </button>
+      <div id="crud-modal-content"></div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
