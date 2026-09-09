@@ -139,14 +139,16 @@ document.addEventListener('DOMContentLoaded', () => {
       gsap.from('.process-step-card', {
         scrollTrigger: {
           trigger: '.process-grid',
-          start: 'top 80%',
-          toggleActions: 'play none none none'
+          start: 'top 85%',
+          toggleActions: 'play none none none',
+          once: true
         },
         opacity: 0,
-        y: 40,
-        stagger: 0.2,
-        duration: 0.8,
-        ease: 'power3.out'
+        y: 25,
+        stagger: 0.15,
+        duration: 0.6,
+        ease: 'power2.out',
+        clearProps: 'transform'
       });
     }
 

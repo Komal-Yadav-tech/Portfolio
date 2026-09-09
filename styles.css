@@ -1520,8 +1520,10 @@ img, video {
 
 .process-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 2rem;
+  align-items: stretch;
+  width: 100%;
 }
 
 .process-step-card {
@@ -1531,7 +1533,12 @@ img, video {
   padding: 2.5rem 2rem;
   position: relative;
   backdrop-filter: var(--glass-blur);
-  transition: transform var(--transition-normal);
+  transition: transform var(--transition-normal), border-color var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .process-step-card:hover {
@@ -2222,11 +2229,16 @@ img, video {
     grid-template-columns: 1fr;
   }
   .process-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
   }
 }
 
 @media (max-width: 768px) {
+  .process-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
   .nav-menu {
     display: none;
   }

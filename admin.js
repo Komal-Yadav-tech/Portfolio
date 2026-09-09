@@ -132,6 +132,8 @@ function switchTab(tabId) {
   const titles = {
     overview: ['Dashboard Overview', 'Real-time overview of content and activities'],
     profile: ['Profile & Bio Settings', 'Manage your personal details, avatar image, and resume CV'],
+    'about-vision': ['Background & Vision', 'Customize the About section tag, heading, and description paragraphs'],
+    'work-process': ['3-Step Creative Workflow', 'Customize the 3-step process cards, numbers, titles, and descriptions'],
     skills: ['Skills & Technologies', 'Manage the infinite dynamic skills marquee displayed on portfolio'],
     projects: ['Portfolio Projects', 'Manage showcase items, media files, and live links'],
     education: ['Academic Education', 'Manage degrees, institutions, and graduation records'],
@@ -205,7 +207,6 @@ async function loadProfileData() {
     document.getElementById('p-location').value = p.location || '';
     document.getElementById('p-linkedin').value = p.linkedin || '';
     document.getElementById('p-github').value = p.github || '';
-    document.getElementById('p-twitter').value = p.twitter || '';
 
     // Quote
     document.getElementById('q-text').value = p.quote_text || '';
@@ -223,6 +224,60 @@ async function loadProfileData() {
     if (skTitleInput) skTitleInput.value = p.skills_title || 'Core Technologies & <span>Masteries</span>';
     const skDescInput = document.getElementById('sk-sec-desc');
     if (skDescInput) skDescInput.value = p.skills_desc || '';
+
+    // Background & Vision Section
+    const avTag = document.getElementById('av-tag');
+    if (avTag) avTag.value = p.about_tag || '[ BACKGROUND & VISION ]';
+
+    const avTitle = document.getElementById('av-title');
+    if (avTitle) avTitle.value = p.about_title || 'Transforming Ideas Into <span>Living Digital Art</span>';
+
+    const avDesc1 = document.getElementById('av-desc1');
+    if (avDesc1) avDesc1.value = p.about_desc1 !== undefined && p.about_desc1 !== null ? p.about_desc1 : 'With a deep passion at the intersection of graphic design, computer science, and creative engineering, I specialize in architecting interactive web applications that leave a lasting impression.';
+
+    const avDesc2 = document.getElementById('av-desc2');
+    if (avDesc2) avDesc2.value = p.about_desc2 !== undefined && p.about_desc2 !== null ? p.about_desc2 : 'Every line of code is written with performance, accessibility, and aesthetic elegance in mind.';
+
+    updateAboutVisionPreview();
+
+    // 3-Step Work Process Section
+    const procTag = document.getElementById('proc-tag');
+    if (procTag) procTag.value = p.process_tag || '[ HOW I WORK ]';
+    const procTitle = document.getElementById('proc-title');
+    if (procTitle) procTitle.value = p.process_title || 'The 3-Step <span>Creative Workflow</span>';
+
+    const s1Num = document.getElementById('proc-s1-num');
+    if (s1Num) s1Num.value = p.step1_num || '01';
+    const s1Title = document.getElementById('proc-s1-title');
+    if (s1Title) s1Title.value = p.step1_title || 'DISCOVER & ANALYZE';
+    const s1Desc = document.getElementById('proc-s1-desc');
+    if (s1Desc) s1Desc.value = p.step1_desc !== undefined && p.step1_desc !== null ? p.step1_desc : 'Deep-dive into objectives, target audience dynamics, technical constraints, and visual moodboards to establish a clear architectural roadmap.';
+
+    const s2Num = document.getElementById('proc-s2-num');
+    if (s2Num) s2Num.value = p.step2_num || '02';
+    const s2Title = document.getElementById('proc-s2-title');
+    if (s2Title) s2Title.value = p.step2_title || 'IDEATE & PROTOTYPE';
+    const s2Desc = document.getElementById('proc-s2-desc');
+    if (s2Desc) s2Desc.value = p.step2_desc !== undefined && p.step2_desc !== null ? p.step2_desc : 'Iterative interactive prototyping, 3D WebGL asset experimentation, motion choreography, and high-fidelity design systems.';
+
+    const s3Num = document.getElementById('proc-s3-num');
+    if (s3Num) s3Num.value = p.step3_num || '03';
+    const s3Title = document.getElementById('proc-s3-title');
+    if (s3Title) s3Title.value = p.step3_title || 'ENGINEER & DEPLOY';
+    const s3Desc = document.getElementById('proc-s3-desc');
+    if (s3Desc) s3Desc.value = p.step3_desc !== undefined && p.step3_desc !== null ? p.step3_desc : 'Full-stack implementation with clean modular code, lighthouse speed optimization, cross-device responsiveness, and continuous deployment.';
+
+    updateWorkProcessPreview();
+
+    // Certifications Section Header
+    const certTagInput = document.getElementById('cert-sec-tag');
+    if (certTagInput) certTagInput.value = p.certs_tag || '[ ACCREDITATIONS & HONORS ]';
+    const certTitleInput = document.getElementById('cert-sec-title');
+    if (certTitleInput) certTitleInput.value = p.certs_title || 'Verified <span>Certifications & Masteries</span>';
+    const certDescInput = document.getElementById('cert-sec-desc');
+    if (certDescInput) certDescInput.value = p.certs_desc !== undefined && p.certs_desc !== null ? p.certs_desc : 'Continuous growth through rigorous industry certifications and specialized masterclasses.';
+
+    updateCertsHeaderPreview();
   } catch (err) {
     console.error('Error loading profile data:', err);
   }
@@ -279,6 +334,36 @@ function initForms() {
     });
   }
 
+  // Certifications Section Header Form
+  const certsHeaderForm = document.getElementById('certs-header-form');
+  if (certsHeaderForm) {
+    certsHeaderForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('certs_tag', document.getElementById('cert-sec-tag').value);
+      formData.append('certs_title', document.getElementById('cert-sec-title').value);
+      formData.append('certs_desc', document.getElementById('cert-sec-desc').value);
+
+      try {
+        const res = await fetch('/api/profile', { method: 'PUT', body: formData });
+        const result = await res.json();
+        if (result.success) {
+          showToast('Certifications section header updated!');
+          loadProfileData();
+        } else {
+          showToast(result.message || 'Update failed', 'error');
+        }
+      } catch (err) {
+        showToast('Error updating certifications header', 'error');
+      }
+    });
+
+    ['cert-sec-tag', 'cert-sec-title', 'cert-sec-desc'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateCertsHeaderPreview);
+    });
+  }
+
   // Quote Update Form
   const quoteForm = document.getElementById('quote-update-form');
   if (quoteForm) {
@@ -316,6 +401,181 @@ function initForms() {
         showToast('Error updating footer box', 'error');
       }
     });
+  }
+
+  // Background & Vision Form
+  const aboutVisionForm = document.getElementById('about-vision-form');
+  if (aboutVisionForm) {
+    aboutVisionForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('about_tag', document.getElementById('av-tag').value);
+      formData.append('about_title', document.getElementById('av-title').value);
+      formData.append('about_desc1', document.getElementById('av-desc1').value);
+      formData.append('about_desc2', document.getElementById('av-desc2').value);
+
+      try {
+        const res = await fetch('/api/profile', { method: 'PUT', body: formData });
+        const result = await res.json();
+        if (result.success) {
+          showToast('Background & Vision updated successfully!');
+          loadProfileData();
+        } else {
+          showToast(result.message || 'Update failed', 'error');
+        }
+      } catch (err) {
+        showToast('Error updating Background & Vision', 'error');
+      }
+    });
+
+    // Real-time live preview update as user types
+    ['av-tag', 'av-title', 'av-desc1', 'av-desc2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateAboutVisionPreview);
+    });
+  }
+
+  // Work Process (3-Step) Form
+  const workProcessForm = document.getElementById('work-process-form');
+  if (workProcessForm) {
+    workProcessForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('process_tag', document.getElementById('proc-tag').value);
+      formData.append('process_title', document.getElementById('proc-title').value);
+
+      formData.append('step1_num', document.getElementById('proc-s1-num').value);
+      formData.append('step1_title', document.getElementById('proc-s1-title').value);
+      formData.append('step1_desc', document.getElementById('proc-s1-desc').value);
+
+      formData.append('step2_num', document.getElementById('proc-s2-num').value);
+      formData.append('step2_title', document.getElementById('proc-s2-title').value);
+      formData.append('step2_desc', document.getElementById('proc-s2-desc').value);
+
+      formData.append('step3_num', document.getElementById('proc-s3-num').value);
+      formData.append('step3_title', document.getElementById('proc-s3-title').value);
+      formData.append('step3_desc', document.getElementById('proc-s3-desc').value);
+
+      try {
+        const res = await fetch('/api/profile', { method: 'PUT', body: formData });
+        const result = await res.json();
+        if (result.success) {
+          showToast('3-Step Work Process updated successfully!');
+          loadProfileData();
+        } else {
+          showToast(result.message || 'Update failed', 'error');
+        }
+      } catch (err) {
+        showToast('Error updating Work Process', 'error');
+      }
+    });
+
+    // Real-time live preview as user types in any input
+    const procInputIds = [
+      'proc-tag', 'proc-title',
+      'proc-s1-num', 'proc-s1-title', 'proc-s1-desc',
+      'proc-s2-num', 'proc-s2-title', 'proc-s2-desc',
+      'proc-s3-num', 'proc-s3-title', 'proc-s3-desc'
+    ];
+    procInputIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateWorkProcessPreview);
+    });
+  }
+}
+
+function updateAboutVisionPreview() {
+  const tagInput = document.getElementById('av-tag');
+  const titleInput = document.getElementById('av-title');
+  const desc1Input = document.getElementById('av-desc1');
+  const desc2Input = document.getElementById('av-desc2');
+
+  const previewTag = document.getElementById('preview-av-tag');
+  const previewTitle = document.getElementById('preview-av-title');
+  const previewDesc1 = document.getElementById('preview-av-desc1');
+  const previewDesc2 = document.getElementById('preview-av-desc2');
+
+  if (previewTag && tagInput) {
+    previewTag.textContent = tagInput.value || '[ BACKGROUND & VISION ]';
+  }
+  if (previewTitle && titleInput) {
+    previewTitle.innerHTML = titleInput.value || 'Transforming Ideas Into <span style="color: #00f2fe;">Living Digital Art</span>';
+  }
+  if (previewDesc1 && desc1Input) {
+    previewDesc1.textContent = desc1Input.value;
+  }
+  if (previewDesc2 && desc2Input) {
+    previewDesc2.textContent = desc2Input.value;
+    previewDesc2.style.display = (desc2Input.value && desc2Input.value.trim() !== '') ? 'block' : 'none';
+  }
+}
+
+function updateWorkProcessPreview() {
+  const tagInput = document.getElementById('proc-tag');
+  const titleInput = document.getElementById('proc-title');
+
+  const s1Num = document.getElementById('proc-s1-num');
+  const s1Title = document.getElementById('proc-s1-title');
+  const s1Desc = document.getElementById('proc-s1-desc');
+
+  const s2Num = document.getElementById('proc-s2-num');
+  const s2Title = document.getElementById('proc-s2-title');
+  const s2Desc = document.getElementById('proc-s2-desc');
+
+  const s3Num = document.getElementById('proc-s3-num');
+  const s3Title = document.getElementById('proc-s3-title');
+  const s3Desc = document.getElementById('proc-s3-desc');
+
+  const prevTag = document.getElementById('preview-proc-tag');
+  const prevTitle = document.getElementById('preview-proc-title');
+
+  const prevS1Num = document.getElementById('preview-proc-s1-num');
+  const prevS1Title = document.getElementById('preview-proc-s1-title');
+  const prevS1Desc = document.getElementById('preview-proc-s1-desc');
+
+  const prevS2Num = document.getElementById('preview-proc-s2-num');
+  const prevS2Title = document.getElementById('preview-proc-s2-title');
+  const prevS2Desc = document.getElementById('preview-proc-s2-desc');
+
+  const prevS3Num = document.getElementById('preview-proc-s3-num');
+  const prevS3Title = document.getElementById('preview-proc-s3-title');
+  const prevS3Desc = document.getElementById('preview-proc-s3-desc');
+
+  if (prevTag && tagInput) prevTag.textContent = tagInput.value || '[ HOW I WORK ]';
+  if (prevTitle && titleInput) prevTitle.innerHTML = titleInput.value || 'The 3-Step <span style="color: #00f2fe;">Creative Workflow</span>';
+
+  if (prevS1Num && s1Num) prevS1Num.textContent = s1Num.value || '01';
+  if (prevS1Title && s1Title) prevS1Title.textContent = s1Title.value || 'DISCOVER & ANALYZE';
+  if (prevS1Desc && s1Desc) prevS1Desc.textContent = s1Desc.value || '';
+
+  if (prevS2Num && s2Num) prevS2Num.textContent = s2Num.value || '02';
+  if (prevS2Title && s2Title) prevS2Title.textContent = s2Title.value || 'IDEATE & PROTOTYPE';
+  if (prevS2Desc && s2Desc) prevS2Desc.textContent = s2Desc.value || '';
+
+  if (prevS3Num && s3Num) prevS3Num.textContent = s3Num.value || '03';
+  if (prevS3Title && s3Title) prevS3Title.textContent = s3Title.value || 'ENGINEER & DEPLOY';
+  if (prevS3Desc && s3Desc) prevS3Desc.textContent = s3Desc.value || '';
+}
+
+function updateCertsHeaderPreview() {
+  const tagInput = document.getElementById('cert-sec-tag');
+  const titleInput = document.getElementById('cert-sec-title');
+  const descInput = document.getElementById('cert-sec-desc');
+
+  const previewTag = document.getElementById('preview-cert-tag');
+  const previewTitle = document.getElementById('preview-cert-title');
+  const previewDesc = document.getElementById('preview-cert-desc');
+
+  if (previewTag && tagInput) {
+    previewTag.textContent = tagInput.value || '[ ACCREDITATIONS & HONORS ]';
+  }
+  if (previewTitle && titleInput) {
+    let formattedTitle = titleInput.value || 'Verified <span>Certifications & Masteries</span>';
+    formattedTitle = formattedTitle.replace(/<span>/gi, '<span style="color: #00f2fe;">');
+    previewTitle.innerHTML = formattedTitle;
+  }
+  if (previewDesc && descInput) {
+    previewDesc.textContent = descInput.value;
   }
 }
 

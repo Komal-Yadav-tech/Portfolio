@@ -220,6 +220,24 @@ app.put('/api/profile', authenticateToken, upload.fields([
           skills_tag = ?,
           skills_title = ?,
           skills_desc = ?,
+          about_tag = ?,
+          about_title = ?,
+          about_desc1 = ?,
+          about_desc2 = ?,
+          process_tag = ?,
+          process_title = ?,
+          step1_num = ?,
+          step1_title = ?,
+          step1_desc = ?,
+          step2_num = ?,
+          step2_title = ?,
+          step2_desc = ?,
+          step3_num = ?,
+          step3_title = ?,
+          step3_desc = ?,
+          certs_tag = ?,
+          certs_title = ?,
+          certs_desc = ?,
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `, [
@@ -249,6 +267,24 @@ app.put('/api/profile', authenticateToken, upload.fields([
         b.skills_tag !== undefined ? b.skills_tag : profile.skills_tag,
         b.skills_title !== undefined ? b.skills_title : profile.skills_title,
         b.skills_desc !== undefined ? b.skills_desc : profile.skills_desc,
+        b.about_tag !== undefined ? b.about_tag : profile.about_tag,
+        b.about_title !== undefined ? b.about_title : profile.about_title,
+        b.about_desc1 !== undefined ? b.about_desc1 : profile.about_desc1,
+        b.about_desc2 !== undefined ? b.about_desc2 : profile.about_desc2,
+        b.process_tag !== undefined ? b.process_tag : profile.process_tag,
+        b.process_title !== undefined ? b.process_title : profile.process_title,
+        b.step1_num !== undefined ? b.step1_num : profile.step1_num,
+        b.step1_title !== undefined ? b.step1_title : profile.step1_title,
+        b.step1_desc !== undefined ? b.step1_desc : profile.step1_desc,
+        b.step2_num !== undefined ? b.step2_num : profile.step2_num,
+        b.step2_title !== undefined ? b.step2_title : profile.step2_title,
+        b.step2_desc !== undefined ? b.step2_desc : profile.step2_desc,
+        b.step3_num !== undefined ? b.step3_num : profile.step3_num,
+        b.step3_title !== undefined ? b.step3_title : profile.step3_title,
+        b.step3_desc !== undefined ? b.step3_desc : profile.step3_desc,
+        b.certs_tag !== undefined ? b.certs_tag : profile.certs_tag,
+        b.certs_title !== undefined ? b.certs_title : profile.certs_title,
+        b.certs_desc !== undefined ? b.certs_desc : profile.certs_desc,
         profile.id
       ]);
     } else {
@@ -259,15 +295,43 @@ app.put('/api/profile', authenticateToken, upload.fields([
           website, linkedin, github, twitter,
           stats_experience, stats_projects, stats_clients,
           quote_text, quote_author, quote_role,
-          footer_title, footer_content, footer_media
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          footer_title, footer_content, footer_media,
+          skills_tag, skills_title, skills_desc,
+          about_tag, about_title, about_desc1, about_desc2,
+          process_tag, process_title,
+          step1_num, step1_title, step1_desc,
+          step2_num, step2_title, step2_desc,
+          step3_num, step3_title, step3_desc,
+          certs_tag, certs_title, certs_desc
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         b.full_name, b.title, b.greeting, b.bio, b.availability_status,
         profile_image, resume_url, b.email, b.phone, b.location,
         b.website, b.linkedin, b.github, b.twitter,
         b.stats_experience, b.stats_projects, b.stats_clients,
         b.quote_text, b.quote_author, b.quote_role,
-        b.footer_title, b.footer_content, footer_media
+        b.footer_title, b.footer_content, footer_media,
+        b.skills_tag || '[ TECHNICAL PROFICIENCIES ]',
+        b.skills_title || 'Core Technologies & Masteries',
+        b.skills_desc || 'Extensive toolkit covering frontend aesthetics, 3D WebGL computation, and robust backend engineering.',
+        b.about_tag || '[ BACKGROUND & VISION ]',
+        b.about_title || 'Transforming Ideas Into <span>Living Digital Art</span>',
+        b.about_desc1 || 'With a deep passion at the intersection of graphic design, computer science, and creative engineering, I specialize in architecting interactive web applications that leave a lasting impression.',
+        b.about_desc2 || 'Every line of code is written with performance, accessibility, and aesthetic elegance in mind.',
+        b.process_tag || '[ HOW I WORK ]',
+        b.process_title || 'The 3-Step <span>Creative Workflow</span>',
+        b.step1_num || '01',
+        b.step1_title || 'DISCOVER & ANALYZE',
+        b.step1_desc || 'Deep-dive into objectives, target audience dynamics, technical constraints, and visual moodboards to establish a clear architectural roadmap.',
+        b.step2_num || '02',
+        b.step2_title || 'IDEATE & PROTOTYPE',
+        b.step2_desc || 'Iterative interactive prototyping, 3D WebGL asset experimentation, motion choreography, and high-fidelity design systems.',
+        b.step3_num || '03',
+        b.step3_title || 'ENGINEER & DEPLOY',
+        b.step3_desc || 'Full-stack implementation with clean modular code, lighthouse speed optimization, cross-device responsiveness, and continuous deployment.',
+        b.certs_tag || '[ ACCREDITATIONS & HONORS ]',
+        b.certs_title || 'Verified <span>Certifications & Masteries</span>',
+        b.certs_desc || 'Continuous growth through rigorous industry certifications and specialized masterclasses.'
       ]);
     }
 

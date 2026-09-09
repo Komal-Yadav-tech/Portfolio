@@ -52,6 +52,12 @@
         <button class="nav-tab-btn" data-tab="profile">
           <i class="fas fa-user-gear"></i> Profile & Bio
         </button>
+        <button class="nav-tab-btn" data-tab="about-vision">
+          <i class="fas fa-compass"></i> Background & Vision
+        </button>
+        <button class="nav-tab-btn" data-tab="work-process">
+          <i class="fas fa-stairs"></i> Work Process (3-Step)
+        </button>
         <button class="nav-tab-btn" data-tab="skills">
           <i class="fas fa-microchip"></i> Skills & Tech
         </button>
@@ -139,6 +145,8 @@
         </p>
         <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
           <button class="admin-btn admin-btn-primary" onclick="switchTab('profile')">Update Profile</button>
+          <button class="admin-btn admin-btn-outline" onclick="switchTab('about-vision')"><i class="fas fa-compass"></i> Background & Vision</button>
+          <button class="admin-btn admin-btn-outline" onclick="switchTab('work-process')"><i class="fas fa-stairs"></i> Work Process</button>
           <button class="admin-btn admin-btn-outline" onclick="switchTab('reviews')">Moderate Reviews</button>
           <button class="admin-btn admin-btn-outline" onclick="switchTab('themes')">Switch Theme</button>
         </div>
@@ -246,9 +254,176 @@
             <label class="form-label" for="p-github">GitHub URL</label>
             <input type="url" id="p-github" name="github" class="form-control">
           </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- TAB: BACKGROUND & VISION (ABOUT SECTION) -->
+    <div id="tab-about-vision" class="tab-panel">
+      <form id="about-vision-form" class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-compass"></i> Background & Vision (About Section)</h2>
+          <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-floppy-disk"></i> Save Background & Vision</button>
+        </div>
+
+        <div class="form-row">
           <div class="form-group">
-            <label class="form-label" for="p-twitter">Twitter / X URL</label>
-            <input type="url" id="p-twitter" name="twitter" class="form-control">
+            <label class="form-label" for="av-tag">Section Tag / Pill</label>
+            <input type="text" id="av-tag" name="about_tag" class="form-control" placeholder="[ BACKGROUND & VISION ]">
+            <small style="color: var(--admin-text-sub); font-size: 0.8rem;">Displays in the cyan pill badge above the heading</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="av-title">Section Heading (HTML &lt;span&gt; supported)</label>
+            <input type="text" id="av-title" name="about_title" class="form-control" placeholder="Transforming Ideas Into <span>Living Digital Art</span>">
+            <small style="color: var(--admin-text-sub); font-size: 0.8rem;">Tip: Wrap words in &lt;span&gt;...&lt;/span&gt; for radiant gradient accent</small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="av-desc1">Description Paragraph 1</label>
+          <textarea id="av-desc1" name="about_desc1" class="form-control" rows="3" placeholder="With a deep passion at the intersection of graphic design, computer science, and creative engineering, I specialize in architecting interactive web applications that leave a lasting impression."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="av-desc2">Description Paragraph 2 (Optional)</label>
+          <textarea id="av-desc2" name="about_desc2" class="form-control" rows="3" placeholder="Every line of code is written with performance, accessibility, and aesthetic elegance in mind."></textarea>
+        </div>
+
+        <!-- Real-time Live Preview -->
+        <div class="admin-card" style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--admin-border); margin-top: 1.5rem; padding: 1.5rem; border-radius: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+            <h3 style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--admin-accent); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+              <i class="fas fa-eye"></i> Live Section Preview
+            </h3>
+            <span style="font-size: 0.75rem; color: var(--admin-text-sub);">Live preview of how it appears on your portfolio</span>
+          </div>
+          <div style="background: rgba(10, 15, 29, 0.6); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+            <span id="preview-av-tag" style="display: inline-block; padding: 4px 12px; background: rgba(0, 242, 254, 0.1); border: 1px solid rgba(0, 242, 254, 0.3); color: #00f2fe; border-radius: 999px; font-family: monospace; font-size: 0.8rem; margin-bottom: 1rem;">[ BACKGROUND & VISION ]</span>
+            <h2 id="preview-av-title" style="font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 1.2rem; line-height: 1.3;">Transforming Ideas Into <span style="color: #00f2fe;">Living Digital Art</span></h2>
+            <p id="preview-av-desc1" style="color: #94a3b8; font-size: 0.95rem; line-height: 1.7; margin-bottom: 1rem;">With a deep passion at the intersection of graphic design, computer science, and creative engineering, I specialize in architecting interactive web applications that leave a lasting impression.</p>
+            <p id="preview-av-desc2" style="color: #94a3b8; font-size: 0.95rem; line-height: 1.7; margin: 0;">Every line of code is written with performance, accessibility, and aesthetic elegance in mind.</p>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- TAB: WORK PROCESS (3-STEP) -->
+    <div id="tab-work-process" class="tab-panel">
+      <form id="work-process-form" class="admin-card">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-stairs"></i> The 3-Step Creative Workflow</h2>
+          <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-floppy-disk"></i> Save Work Process</button>
+        </div>
+
+        <!-- Section Header Settings -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="proc-tag">Section Tag</label>
+            <input type="text" id="proc-tag" name="process_tag" class="form-control" placeholder="[ HOW I WORK ]">
+            <small style="color: var(--admin-text-sub); font-size: 0.8rem;">Displays in the highlighted pill badge above the title</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="proc-title">Section Heading (HTML &lt;span&gt; supported)</label>
+            <input type="text" id="proc-title" name="process_title" class="form-control" placeholder="The 3-Step <span>Creative Workflow</span>">
+            <small style="color: var(--admin-text-sub); font-size: 0.8rem;">Tip: Wrap text in &lt;span&gt;...&lt;/span&gt; for glowing cyan accent</small>
+          </div>
+        </div>
+
+        <!-- Step 1 Card -->
+        <div class="admin-card" style="background: rgba(255,255,255,0.02); border: 1px solid var(--admin-border); margin-top: 1.5rem; border-radius: 12px; padding: 1.5rem;">
+          <h3 style="font-size: 1rem; color: var(--admin-accent); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-cube"></i> Step 01 Configuration
+          </h3>
+          <div class="form-row">
+            <div class="form-group" style="flex: 0 0 120px;">
+              <label class="form-label" for="proc-s1-num">Step Number</label>
+              <input type="text" id="proc-s1-num" name="step1_num" class="form-control" placeholder="01">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="proc-s1-title">Step Title</label>
+              <input type="text" id="proc-s1-title" name="step1_title" class="form-control" placeholder="DISCOVER & ANALYZE">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="proc-s1-desc">Step Description</label>
+            <textarea id="proc-s1-desc" name="step1_desc" class="form-control" rows="3" placeholder="Deep-dive into objectives, target audience dynamics..."></textarea>
+          </div>
+        </div>
+
+        <!-- Step 2 Card -->
+        <div class="admin-card" style="background: rgba(255,255,255,0.02); border: 1px solid var(--admin-border); margin-top: 1.5rem; border-radius: 12px; padding: 1.5rem;">
+          <h3 style="font-size: 1rem; color: var(--admin-accent); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-cube"></i> Step 02 Configuration
+          </h3>
+          <div class="form-row">
+            <div class="form-group" style="flex: 0 0 120px;">
+              <label class="form-label" for="proc-s2-num">Step Number</label>
+              <input type="text" id="proc-s2-num" name="step2_num" class="form-control" placeholder="02">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="proc-s2-title">Step Title</label>
+              <input type="text" id="proc-s2-title" name="step2_title" class="form-control" placeholder="IDEATE & PROTOTYPE">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="proc-s2-desc">Step Description</label>
+            <textarea id="proc-s2-desc" name="step2_desc" class="form-control" rows="3" placeholder="Iterative interactive prototyping, 3D WebGL asset experimentation..."></textarea>
+          </div>
+        </div>
+
+        <!-- Step 3 Card -->
+        <div class="admin-card" style="background: rgba(255,255,255,0.02); border: 1px solid var(--admin-border); margin-top: 1.5rem; border-radius: 12px; padding: 1.5rem;">
+          <h3 style="font-size: 1rem; color: var(--admin-accent); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-cube"></i> Step 03 Configuration
+          </h3>
+          <div class="form-row">
+            <div class="form-group" style="flex: 0 0 120px;">
+              <label class="form-label" for="proc-s3-num">Step Number</label>
+              <input type="text" id="proc-s3-num" name="step3_num" class="form-control" placeholder="03">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="proc-s3-title">Step Title</label>
+              <input type="text" id="proc-s3-title" name="step3_title" class="form-control" placeholder="ENGINEER & DEPLOY">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="proc-s3-desc">Step Description</label>
+            <textarea id="proc-s3-desc" name="step3_desc" class="form-control" rows="3" placeholder="Full-stack implementation with clean modular code..."></textarea>
+          </div>
+        </div>
+
+        <!-- Real-time Live 3-Box Preview (In One Line!) -->
+        <div class="admin-card" style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--admin-border); margin-top: 2rem; padding: 1.5rem; border-radius: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+            <h3 style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--admin-accent); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+              <i class="fas fa-eye"></i> Live Workflow Preview (1-Line Equal Height Layout)
+            </h3>
+            <span style="font-size: 0.75rem; color: var(--admin-text-sub);">Updates as you type</span>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <span id="preview-proc-tag" style="display: inline-block; padding: 4px 14px; background: rgba(0, 242, 254, 0.1); border: 1px solid rgba(0, 242, 254, 0.3); color: #00f2fe; border-radius: 999px; font-family: monospace; font-size: 0.8rem; margin-bottom: 0.75rem;">[ HOW I WORK ]</span>
+            <h2 id="preview-proc-title" style="font-size: 1.6rem; font-weight: 700; color: #fff; margin: 0;">The 3-Step <span style="color: #00f2fe;">Creative Workflow</span></h2>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; align-items: stretch;">
+            <div style="background: rgba(10, 15, 29, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column;">
+              <div id="preview-proc-s1-num" style="font-size: 2.2rem; font-weight: 800; color: #00f2fe; opacity: 0.7; margin-bottom: 0.5rem; font-family: monospace;">01</div>
+              <h4 id="preview-proc-s1-title" style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 0.75rem;">DISCOVER & ANALYZE</h4>
+              <p id="preview-proc-s1-desc" style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6; margin: 0;">Deep-dive into objectives, target audience dynamics, technical constraints, and visual moodboards to establish a clear architectural roadmap.</p>
+            </div>
+
+            <div style="background: rgba(10, 15, 29, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column;">
+              <div id="preview-proc-s2-num" style="font-size: 2.2rem; font-weight: 800; color: #00f2fe; opacity: 0.7; margin-bottom: 0.5rem; font-family: monospace;">02</div>
+              <h4 id="preview-proc-s2-title" style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 0.75rem;">IDEATE & PROTOTYPE</h4>
+              <p id="preview-proc-s2-desc" style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6; margin: 0;">Iterative interactive prototyping, 3D WebGL asset experimentation, motion choreography, and high-fidelity design systems.</p>
+            </div>
+
+            <div style="background: rgba(10, 15, 29, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column;">
+              <div id="preview-proc-s3-num" style="font-size: 2.2rem; font-weight: 800; color: #00f2fe; opacity: 0.7; margin-bottom: 0.5rem; font-family: monospace;">03</div>
+              <h4 id="preview-proc-s3-title" style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 0.75rem;">ENGINEER & DEPLOY</h4>
+              <p id="preview-proc-s3-desc" style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6; margin: 0;">Full-stack implementation with clean modular code, lighthouse speed optimization, cross-device responsiveness, and continuous deployment.</p>
+            </div>
           </div>
         </div>
       </form>
@@ -356,6 +531,42 @@
 
     <!-- TAB 6: CERTIFICATIONS -->
     <div id="tab-certifications" class="tab-panel">
+      <!-- 1. Section Header & Subtitle Form -->
+      <form id="certs-header-form" class="admin-card" style="margin-bottom: 2rem;">
+        <div class="card-title-bar">
+          <h2><i class="fas fa-heading"></i> Certifications Section Tag, Heading & Description</h2>
+          <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-floppy-disk"></i> Save Header</button>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="cert-sec-tag">Section Tag</label>
+            <input type="text" id="cert-sec-tag" name="certs_tag" class="form-control" placeholder="[ ACCREDITATIONS & HONORS ]">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="cert-sec-title">Section Main Title (supports &lt;span&gt; for accent)</label>
+            <input type="text" id="cert-sec-title" name="certs_title" class="form-control" placeholder="Verified <span>Certifications & Masteries</span>">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cert-sec-desc">Section Subtitle / Description</label>
+          <textarea id="cert-sec-desc" name="certs_desc" class="form-control" rows="2" placeholder="Continuous growth through rigorous industry certifications and specialized masterclasses."></textarea>
+        </div>
+
+        <!-- Real-time Live Header Preview -->
+        <div style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--admin-border); margin-top: 1rem; padding: 1.25rem; border-radius: 10px; text-align: center;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--admin-accent); font-weight: 600;">
+              <i class="fas fa-eye"></i> Live Section Header Preview
+            </span>
+            <span style="font-size: 0.75rem; color: var(--admin-text-sub);">Updates as you type</span>
+          </div>
+          <span id="preview-cert-tag" style="display: inline-block; padding: 4px 14px; background: rgba(0, 242, 254, 0.1); border: 1px solid rgba(0, 242, 254, 0.3); color: #00f2fe; border-radius: 999px; font-family: monospace; font-size: 0.8rem; margin-bottom: 0.5rem;">[ ACCREDITATIONS & HONORS ]</span>
+          <h2 id="preview-cert-title" style="font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0 0 0.5rem 0;">Verified <span style="color: #00f2fe;">Certifications & Masteries</span></h2>
+          <p id="preview-cert-desc" style="color: #94a3b8; font-size: 0.9rem; margin: 0; max-width: 600px; margin-inline: auto;">Continuous growth through rigorous industry certifications and specialized masterclasses.</p>
+        </div>
+      </form>
+
+      <!-- 2. Certifications & Awards List -->
       <div class="admin-card">
         <div class="card-title-bar">
           <h2><i class="fas fa-certificate"></i> Certifications & Awards</h2>

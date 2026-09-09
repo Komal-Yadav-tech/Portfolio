@@ -81,6 +81,24 @@ async function initDatabase() {
         skills_tag TEXT DEFAULT "[ TECHNICAL PROFICIENCIES ]",
         skills_title TEXT DEFAULT "Core Technologies & Masteries",
         skills_desc TEXT DEFAULT "Extensive toolkit covering frontend aesthetics, 3D WebGL computation, and robust backend engineering.",
+        about_tag TEXT DEFAULT "[ BACKGROUND & VISION ]",
+        about_title TEXT DEFAULT "Transforming Ideas Into <span>Living Digital Art</span>",
+        about_desc1 TEXT DEFAULT "With a deep passion at the intersection of graphic design, computer science, and creative engineering, I specialize in architecting interactive web applications that leave a lasting impression.",
+        about_desc2 TEXT DEFAULT "Every line of code is written with performance, accessibility, and aesthetic elegance in mind.",
+        process_tag TEXT DEFAULT "[ HOW I WORK ]",
+        process_title TEXT DEFAULT "The 3-Step <span>Creative Workflow</span>",
+        step1_num TEXT DEFAULT "01",
+        step1_title TEXT DEFAULT "DISCOVER & ANALYZE",
+        step1_desc TEXT DEFAULT "Deep-dive into objectives, target audience dynamics, technical constraints, and visual moodboards to establish a clear architectural roadmap.",
+        step2_num TEXT DEFAULT "02",
+        step2_title TEXT DEFAULT "IDEATE & PROTOTYPE",
+        step2_desc TEXT DEFAULT "Iterative interactive prototyping, 3D WebGL asset experimentation, motion choreography, and high-fidelity design systems.",
+        step3_num TEXT DEFAULT "03",
+        step3_title TEXT DEFAULT "ENGINEER & DEPLOY",
+        step3_desc TEXT DEFAULT "Full-stack implementation with clean modular code, lighthouse speed optimization, cross-device responsiveness, and continuous deployment.",
+        certs_tag TEXT DEFAULT "[ ACCREDITATIONS & HONORS ]",
+        certs_title TEXT DEFAULT "Verified <span>Certifications & Masteries</span>",
+        certs_desc TEXT DEFAULT "Continuous growth through rigorous industry certifications and specialized masterclasses.",
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -89,6 +107,30 @@ async function initDatabase() {
     db.run(`ALTER TABLE profile ADD COLUMN skills_tag TEXT DEFAULT "[ TECHNICAL PROFICIENCIES ]"`, () => {});
     db.run(`ALTER TABLE profile ADD COLUMN skills_title TEXT DEFAULT "Core Technologies & Masteries"`, () => {});
     db.run(`ALTER TABLE profile ADD COLUMN skills_desc TEXT DEFAULT "Extensive toolkit covering frontend aesthetics, 3D WebGL computation, and robust backend engineering."`, () => {});
+
+    // Ensure about & vision columns exist in existing database
+    db.run(`ALTER TABLE profile ADD COLUMN about_tag TEXT DEFAULT "[ BACKGROUND & VISION ]"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN about_title TEXT DEFAULT "Transforming Ideas Into <span>Living Digital Art</span>"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN about_desc1 TEXT DEFAULT "With a deep passion at the intersection of graphic design, computer science, and creative engineering, I specialize in architecting interactive web applications that leave a lasting impression."`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN about_desc2 TEXT DEFAULT "Every line of code is written with performance, accessibility, and aesthetic elegance in mind."`, () => {});
+
+    // Ensure 3-step process columns exist in existing database
+    db.run(`ALTER TABLE profile ADD COLUMN process_tag TEXT DEFAULT "[ HOW I WORK ]"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN process_title TEXT DEFAULT "The 3-Step <span>Creative Workflow</span>"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN step1_num TEXT DEFAULT "01"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN step1_title TEXT DEFAULT "DISCOVER & ANALYZE"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN step1_desc TEXT DEFAULT "Deep-dive into objectives, target audience dynamics, technical constraints, and visual moodboards to establish a clear architectural roadmap."`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN step2_num TEXT DEFAULT "02"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN step2_title TEXT DEFAULT "IDEATE & PROTOTYPE"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN step2_desc TEXT DEFAULT "Iterative interactive prototyping, 3D WebGL asset experimentation, motion choreography, and high-fidelity design systems."`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN step3_num TEXT DEFAULT "03"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN step3_title TEXT DEFAULT "ENGINEER & DEPLOY"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN step3_desc TEXT DEFAULT "Full-stack implementation with clean modular code, lighthouse speed optimization, cross-device responsiveness, and continuous deployment."`, () => {});
+
+    // Ensure certifications section header columns exist in existing database
+    db.run(`ALTER TABLE profile ADD COLUMN certs_tag TEXT DEFAULT "[ ACCREDITATIONS & HONORS ]"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN certs_title TEXT DEFAULT "Verified <span>Certifications & Masteries</span>"`, () => {});
+    db.run(`ALTER TABLE profile ADD COLUMN certs_desc TEXT DEFAULT "Continuous growth through rigorous industry certifications and specialized masterclasses."`, () => {});
 
     // 3. Services
     db.run(`
@@ -241,15 +283,33 @@ async function initDatabase() {
         `);
         console.log('🌱 Seeded default profile information');
       } else {
-        // Sync stats and name with Komal Yadav
+        // Sync stats, name, and ensure about fields are populated
         await runQuery(`
           UPDATE profile SET 
             full_name = 'Komal Yadav',
             stats_experience = '5+',
             stats_projects = '1+',
-            stats_clients = '5+'
+            stats_clients = '5+',
+            about_tag = COALESCE(NULLIF(about_tag, ''), '[ BACKGROUND & VISION ]'),
+            about_title = COALESCE(NULLIF(about_title, ''), 'Transforming Ideas Into <span>Living Digital Art</span>'),
+            about_desc1 = COALESCE(NULLIF(about_desc1, ''), 'With a deep passion at the intersection of graphic design, computer science, and creative engineering, I specialize in architecting interactive web applications that leave a lasting impression.'),
+            about_desc2 = COALESCE(NULLIF(about_desc2, ''), 'Every line of code is written with performance, accessibility, and aesthetic elegance in mind.'),
+            process_tag = COALESCE(NULLIF(process_tag, ''), '[ HOW I WORK ]'),
+            process_title = COALESCE(NULLIF(process_title, ''), 'The 3-Step <span>Creative Workflow</span>'),
+            step1_num = COALESCE(NULLIF(step1_num, ''), '01'),
+            step1_title = COALESCE(NULLIF(step1_title, ''), 'DISCOVER & ANALYZE'),
+            step1_desc = COALESCE(NULLIF(step1_desc, ''), 'Deep-dive into objectives, target audience dynamics, technical constraints, and visual moodboards to establish a clear architectural roadmap.'),
+            step2_num = COALESCE(NULLIF(step2_num, ''), '02'),
+            step2_title = COALESCE(NULLIF(step2_title, ''), 'IDEATE & PROTOTYPE'),
+            step2_desc = COALESCE(NULLIF(step2_desc, ''), 'Iterative interactive prototyping, 3D WebGL asset experimentation, motion choreography, and high-fidelity design systems.'),
+            step3_num = COALESCE(NULLIF(step3_num, ''), '03'),
+            step3_title = COALESCE(NULLIF(step3_title, ''), 'ENGINEER & DEPLOY'),
+            step3_desc = COALESCE(NULLIF(step3_desc, ''), 'Full-stack implementation with clean modular code, lighthouse speed optimization, cross-device responsiveness, and continuous deployment.'),
+            certs_tag = COALESCE(NULLIF(certs_tag, ''), '[ ACCREDITATIONS & HONORS ]'),
+            certs_title = COALESCE(NULLIF(certs_title, ''), 'Verified <span>Certifications & Masteries</span>'),
+            certs_desc = COALESCE(NULLIF(certs_desc, ''), 'Continuous growth through rigorous industry certifications and specialized masterclasses.')
           WHERE id = 1
-        `);
+        `).catch(() => {});
       }
 
       const servicesCount = await getQuery('SELECT COUNT(*) as count FROM services');

@@ -163,34 +163,43 @@ function hydrateProfile(p) {
   if (quoteRole) quoteRole.textContent = p.quote_role || '';
 
   // Footer & Contact
+  const userEmail = p.email || 'komalyadav642006@gmail.com';
   const footerEmail = document.getElementById('footer-email');
-  if (footerEmail) {
-    footerEmail.textContent = p.email || 'komal.creative@example.com';
-    footerEmail.href = `mailto:${p.email || 'komal.creative@example.com'}?subject=Portfolio%20Inquiry`;
+  const footerEmailLink = document.getElementById('footer-email-link');
+  if (footerEmail) footerEmail.textContent = userEmail;
+  if (footerEmailLink) {
+    footerEmailLink.href = `mailto:${userEmail}?subject=Portfolio%20Inquiry`;
   }
 
+  // "Start A Conversation" CTA button - direct link to send email to user
   const footerCtaBtn = document.getElementById('footer-cta-btn');
   if (footerCtaBtn) {
-    footerCtaBtn.href = `mailto:${p.email || 'komal.creative@example.com'}?subject=Project%20Inquiry%20from%20Portfolio`;
+    const mailtoSubject = encodeURIComponent("Let's Collaborate - Project Inquiry");
+    const mailtoBody = encodeURIComponent("Hi Komal,\n\nI visited your portfolio and would like to connect with you regarding a project.\n\nBest regards,");
+    const mailtoUrl = `mailto:${userEmail}?subject=${mailtoSubject}&body=${mailtoBody}`;
+    footerCtaBtn.href = mailtoUrl;
+    footerCtaBtn.onclick = (e) => {
+      e.preventDefault();
+      window.location.href = mailtoUrl;
+    };
   }
 
+  const userPhone = p.phone || '+91 8303755587';
   const footerPhone = document.getElementById('footer-phone');
-  if (footerPhone) {
-    footerPhone.textContent = p.phone || '+91 98765 43210';
-    footerPhone.href = `tel:${p.phone ? p.phone.replace(/\s+/g, '') : ''}`;
+  const footerPhoneLink = document.getElementById('footer-phone-link');
+  if (footerPhone) footerPhone.textContent = userPhone;
+  if (footerPhoneLink) {
+    footerPhoneLink.href = `tel:${userPhone.replace(/\s+/g, '')}`;
   }
 
   const footerLocation = document.getElementById('footer-location');
-  if (footerLocation) footerLocation.textContent = p.location || 'Bangalore, India';
+  if (footerLocation) footerLocation.textContent = p.location || 'Kanpur, uttar pradesh';
 
   const footerLinkedIn = document.getElementById('footer-linkedin');
   if (footerLinkedIn && p.linkedin) footerLinkedIn.href = p.linkedin;
 
   const footerGithub = document.getElementById('footer-github');
   if (footerGithub && p.github) footerGithub.href = p.github;
-
-  const footerTwitter = document.getElementById('footer-twitter');
-  if (footerTwitter && p.twitter) footerTwitter.href = p.twitter;
 
   // Dynamic Footer Box
   const footerBoxTitle = document.getElementById('footer-box-title');
@@ -209,6 +218,70 @@ function hydrateProfile(p) {
 
   const skillsDesc = document.getElementById('skills-desc');
   if (skillsDesc && p.skills_desc) skillsDesc.textContent = p.skills_desc;
+
+  // Dynamic Background & Vision (About Section)
+  const aboutTag = document.getElementById('about-tag');
+  if (aboutTag && p.about_tag) aboutTag.textContent = p.about_tag;
+
+  const aboutTitle = document.getElementById('about-title');
+  if (aboutTitle && p.about_title) {
+    aboutTitle.innerHTML = p.about_title;
+  }
+
+  const aboutDesc1 = document.getElementById('about-desc1');
+  if (aboutDesc1 && p.about_desc1 !== undefined && p.about_desc1 !== null) {
+    aboutDesc1.textContent = p.about_desc1;
+  }
+
+  const aboutDesc2 = document.getElementById('about-desc2');
+  if (aboutDesc2 && p.about_desc2 !== undefined && p.about_desc2 !== null) {
+    aboutDesc2.textContent = p.about_desc2;
+    aboutDesc2.style.display = (p.about_desc2 && p.about_desc2.trim() !== '') ? 'block' : 'none';
+  }
+
+  // Dynamic 3-Step Work Process
+  const processTag = document.getElementById('process-tag');
+  if (processTag && p.process_tag) processTag.textContent = p.process_tag;
+
+  const processTitle = document.getElementById('process-title');
+  if (processTitle && p.process_title) {
+    processTitle.innerHTML = p.process_title;
+  }
+
+  const s1Num = document.getElementById('step1-num');
+  if (s1Num && p.step1_num) s1Num.textContent = p.step1_num;
+  const s1Title = document.getElementById('step1-title');
+  if (s1Title && p.step1_title) s1Title.textContent = p.step1_title;
+  const s1Desc = document.getElementById('step1-desc');
+  if (s1Desc && p.step1_desc) s1Desc.textContent = p.step1_desc;
+
+  const s2Num = document.getElementById('step2-num');
+  if (s2Num && p.step2_num) s2Num.textContent = p.step2_num;
+  const s2Title = document.getElementById('step2-title');
+  if (s2Title && p.step2_title) s2Title.textContent = p.step2_title;
+  const s2Desc = document.getElementById('step2-desc');
+  if (s2Desc && p.step2_desc) s2Desc.textContent = p.step2_desc;
+
+  const s3Num = document.getElementById('step3-num');
+  if (s3Num && p.step3_num) s3Num.textContent = p.step3_num;
+  const s3Title = document.getElementById('step3-title');
+  if (s3Title && p.step3_title) s3Title.textContent = p.step3_title;
+  const s3Desc = document.getElementById('step3-desc');
+  if (s3Desc && p.step3_desc) s3Desc.textContent = p.step3_desc;
+
+  // Dynamic Certifications Section Header
+  const certsTag = document.getElementById('certs-tag');
+  if (certsTag && p.certs_tag) certsTag.textContent = p.certs_tag;
+
+  const certsTitle = document.getElementById('certs-title');
+  if (certsTitle && p.certs_title) {
+    certsTitle.innerHTML = p.certs_title;
+  }
+
+  const certsDesc = document.getElementById('certs-desc');
+  if (certsDesc && p.certs_desc !== undefined && p.certs_desc !== null) {
+    certsDesc.textContent = p.certs_desc;
+  }
 }
 
 function hydrateSkills(skills) {
