@@ -128,6 +128,8 @@ function switchTab(tabId) {
     else p.classList.remove('active');
   });
 
+  if (tabId === 'experience') loadExperience();
+
   // Update header titles
   const titles = {
     overview: ['Dashboard Overview', 'Real-time overview of content and activities'],
@@ -135,6 +137,7 @@ function switchTab(tabId) {
     'about-vision': ['Background & Vision', 'Customize the About section tag, heading, and description paragraphs'],
     'work-process': ['3-Step Creative Workflow', 'Customize the 3-step process cards, numbers, titles, and descriptions'],
     skills: ['Skills & Technologies', 'Manage the infinite dynamic skills marquee displayed on portfolio'],
+    experience: ['Work Experience & Roles', 'Manage professional roles, internships, and tech stack tags'],
     projects: ['Portfolio Projects', 'Manage showcase items, media files, and live links'],
     education: ['Academic Education', 'Manage degrees, institutions, and graduation records'],
     certifications: ['Certifications & Awards', 'Manage accredited certificates and badge media'],
@@ -160,6 +163,7 @@ async function loadAllAdminData() {
   await Promise.allSettled([
     loadProfileData(),
     loadSkills(),
+    loadExperience(),
     loadProjects(),
     loadEducation(),
     loadCertifications(),
@@ -584,6 +588,7 @@ function updateCertsHeaderPreview() {
    ========================================================================== */
 
 window.skillsData = [];
+window.currentSkillFilter = 'all';
 
 async function loadSkills() {
   try {
@@ -593,28 +598,70 @@ async function loadSkills() {
     const list = result.data || [];
     window.skillsData = list;
 
+    // Update counts
     const countEl = document.getElementById('count-skills');
     if (countEl) countEl.textContent = list.length;
+    const allEl = document.getElementById('count-all-skills');
+    if (allEl) allEl.textContent = list.length;
+    const techEl = document.getElementById('count-tech-skills');
+    if (techEl) techEl.textContent = list.filter(s => (s.category || 'technical') === 'technical').length;
+    const softEl = document.getElementById('count-soft-skills');
+    if (softEl) softEl.textContent = list.filter(s => s.category === 'soft').length;
 
-    const tbody = document.getElementById('skills-table-body');
-    if (!tbody) return;
-
-    tbody.innerHTML = list.map((s) => `
-      <tr>
-        <td><i class="${s.icon || 'fas fa-cube'}" style="color: var(--admin-accent); font-size: 1.25rem;"></i></td>
-        <td><strong>${s.name}</strong></td>
-        <td>${s.sort_order}</td>
-        <td>
-          <div class="table-actions">
-            <button class="admin-btn admin-btn-outline" style="padding: 0.4rem 0.8rem;" onclick='openEditSkillById(${s.id})'><i class="fas fa-pen"></i></button>
-            <button class="admin-btn admin-btn-danger" style="padding: 0.4rem 0.8rem;" onclick="deleteSkill(${s.id})"><i class="fas fa-trash"></i></button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+    renderSkillsTable();
   } catch (err) {
     console.error('Error loading skills:', err);
   }
+}
+
+function filterSkillsTable(filter) {
+  window.currentSkillFilter = filter;
+  ['btn-filter-all', 'btn-filter-tech', 'btn-filter-soft'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.classList.remove('active');
+  });
+  if (filter === 'all') document.getElementById('btn-filter-all')?.classList.add('active');
+  if (filter === 'technical') document.getElementById('btn-filter-tech')?.classList.add('active');
+  if (filter === 'soft') document.getElementById('btn-filter-soft')?.classList.add('active');
+
+  renderSkillsTable();
+}
+
+function renderSkillsTable() {
+  const tbody = document.getElementById('skills-table-body');
+  if (!tbody) return;
+
+  let list = window.skillsData || [];
+  if (window.currentSkillFilter !== 'all') {
+    list = list.filter(s => (s.category || 'technical') === window.currentSkillFilter);
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--admin-text-sub); padding: 2rem;">No skills found in this category. Click "+ Add Skill" to create one.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map((s) => {
+    const isSoft = s.category === 'soft';
+    const catBadge = isSoft
+      ? `<span class="skill-cat-badge badge-soft"><i class="fas fa-brain"></i> Soft Skill</span>`
+      : `<span class="skill-cat-badge badge-tech"><i class="fas fa-code"></i> Technical</span>`;
+
+    return `
+      <tr>
+        <td><i class="${s.icon || 'fas fa-cube'}" style="color: var(--admin-accent); font-size: 1.25rem;"></i></td>
+        <td><strong>${s.name}</strong></td>
+        <td>${catBadge}</td>
+        <td>${s.sort_order}</td>
+        <td>
+          <div class="table-actions">
+            <button class="admin-btn admin-btn-outline" style="padding: 0.4rem 0.8rem;" onclick='openEditSkillById(${s.id})' title="Edit Skill"><i class="fas fa-pen"></i></button>
+            <button class="admin-btn admin-btn-danger" style="padding: 0.4rem 0.8rem;" onclick="deleteSkill(${s.id})" title="Delete Skill"><i class="fas fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function openEditSkillById(id) {
@@ -623,25 +670,53 @@ function openEditSkillById(id) {
   openEditSkillModal(s);
 }
 
+function pickPresetIcon(inputTargetId, iconClass) {
+  const el = document.getElementById(inputTargetId);
+  if (el) el.value = iconClass;
+}
+
 function openAddSkillModal() {
+  const defaultCategory = window.currentSkillFilter !== 'all' ? window.currentSkillFilter : 'technical';
   openCrudModal(`
-    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-plus"></i> Add Skill / Technology</h3>
+    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-plus"></i> Add Skill / Competency</h3>
     <form id="add-skill-form">
-      <div class="form-group">
-        <label class="form-label">Skill Name *</label>
-        <input type="text" id="sk-name" class="form-control" placeholder="e.g. REACT & NEXT.JS" required>
+      <div class="form-row">
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Skill Category *</label>
+          <select id="sk-category" class="form-control" required>
+            <option value="technical" ${defaultCategory === 'technical' ? 'selected' : ''}>💻 Technical Skills</option>
+            <option value="soft" ${defaultCategory === 'soft' ? 'selected' : ''}>🧠 Soft Skills</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Skill Name *</label>
+          <input type="text" id="sk-name" class="form-control" placeholder="e.g. PYTHON or COMMUNICATION" required>
+        </div>
       </div>
       <div class="form-row">
-        <div class="form-group">
+        <div class="form-group" style="flex: 2;">
           <label class="form-label">FontAwesome Icon Class</label>
-          <input type="text" id="sk-icon" class="form-control" placeholder="fab fa-react" value="fas fa-cube">
+          <input type="text" id="sk-icon" class="form-control" placeholder="fab fa-python" value="fas fa-cube">
+          <div class="icon-preset-picker">
+            <span style="font-size: 0.75rem; color: var(--admin-text-sub); width: 100%;">Popular Icon Presets (Click to choose):</span>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fab fa-python')"><i class="fab fa-python"></i> Python</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-wand-magic-sparkles')"><i class="fas fa-wand-magic-sparkles"></i> AI/Vibe</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fab fa-github')"><i class="fab fa-github"></i> Git/GitHub</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-chart-pie')"><i class="fas fa-chart-pie"></i> Power BI</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fab fa-code')"><i class="fab fa-code"></i> HTML/JS</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-comments')"><i class="fas fa-comments"></i> Communication</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-people-group')"><i class="fas fa-people-group"></i> Teamwork</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-crown')"><i class="fas fa-crown"></i> Leadership</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-clock')"><i class="fas fa-clock"></i> Time Mgmt</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-bolt')"><i class="fas fa-bolt"></i> Learning</button>
+          </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="flex: 1;">
           <label class="form-label">Sort Order</label>
           <input type="number" id="sk-order" class="form-control" value="0">
         </div>
       </div>
-      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center;">Add Skill</button>
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Add Skill</button>
     </form>
   `);
 
@@ -649,6 +724,7 @@ function openAddSkillModal() {
     e.preventDefault();
     const body = {
       name: document.getElementById('sk-name').value.trim(),
+      category: document.getElementById('sk-category').value,
       icon: document.getElementById('sk-icon').value.trim(),
       sort_order: parseInt(document.getElementById('sk-order').value) || 0
     };
@@ -669,24 +745,47 @@ function openAddSkillModal() {
 }
 
 function openEditSkillModal(s) {
+  const currentCat = s.category || 'technical';
   openCrudModal(`
-    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-pen"></i> Edit Skill / Technology</h3>
+    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-pen"></i> Edit Skill / Competency</h3>
     <form id="edit-skill-form">
-      <div class="form-group">
-        <label class="form-label">Skill Name *</label>
-        <input type="text" id="esk-name" class="form-control" value="${s.name}" required>
+      <div class="form-row">
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Skill Category *</label>
+          <select id="esk-category" class="form-control" required>
+            <option value="technical" ${currentCat === 'technical' ? 'selected' : ''}>💻 Technical Skills</option>
+            <option value="soft" ${currentCat === 'soft' ? 'selected' : ''}>🧠 Soft Skills</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Skill Name *</label>
+          <input type="text" id="esk-name" class="form-control" value="${s.name}" required>
+        </div>
       </div>
       <div class="form-row">
-        <div class="form-group">
+        <div class="form-group" style="flex: 2;">
           <label class="form-label">FontAwesome Icon Class</label>
           <input type="text" id="esk-icon" class="form-control" value="${s.icon || 'fas fa-cube'}">
+          <div class="icon-preset-picker">
+            <span style="font-size: 0.75rem; color: var(--admin-text-sub); width: 100%;">Popular Icon Presets:</span>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fab fa-python')"><i class="fab fa-python"></i> Python</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-wand-magic-sparkles')"><i class="fas fa-wand-magic-sparkles"></i> AI/Vibe</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fab fa-github')"><i class="fab fa-github"></i> Git/GitHub</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-chart-pie')"><i class="fas fa-chart-pie"></i> Power BI</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fab fa-code')"><i class="fab fa-code"></i> HTML/JS</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-comments')"><i class="fas fa-comments"></i> Communication</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-people-group')"><i class="fas fa-people-group"></i> Teamwork</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-crown')"><i class="fas fa-crown"></i> Leadership</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-clock')"><i class="fas fa-clock"></i> Time Mgmt</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-bolt')"><i class="fas fa-bolt"></i> Learning</button>
+          </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="flex: 1;">
           <label class="form-label">Sort Order</label>
           <input type="number" id="esk-order" class="form-control" value="${s.sort_order}">
         </div>
       </div>
-      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center;">Save Changes</button>
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Save Changes</button>
     </form>
   `);
 
@@ -694,6 +793,7 @@ function openEditSkillModal(s) {
     e.preventDefault();
     const body = {
       name: document.getElementById('esk-name').value.trim(),
+      category: document.getElementById('esk-category').value,
       icon: document.getElementById('esk-icon').value.trim(),
       sort_order: parseInt(document.getElementById('esk-order').value) || 0
     };
@@ -713,13 +813,248 @@ function openEditSkillModal(s) {
   });
 }
 
-async function deleteSkill(id) {
+function deleteSkill(id) {
   if (!confirm('Are you sure you want to delete this skill?')) return;
-  const res = await fetch(`/api/skills/${id}`, { method: 'DELETE' });
-  const result = await res.json();
-  if (result.success) {
-    showToast('Skill deleted');
-    loadSkills();
+  fetch(`/api/skills/${id}`, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(result => {
+      if (result.success) {
+        showToast('Skill deleted');
+        loadSkills();
+      }
+    });
+}
+
+/* ==========================================================================
+   WORK EXPERIENCE CRUD
+   ========================================================================== */
+
+window.experienceData = [];
+
+async function loadExperience() {
+  try {
+    const res = await fetch('/api/experience');
+    const result = await res.json();
+    if (!result.success) return;
+    const list = result.data || [];
+    // Strict ascending sort by sort_order
+    list.sort((a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0));
+    window.experienceData = list;
+
+    const countEl = document.getElementById('count-experience');
+    if (countEl) countEl.textContent = list.length;
+
+    const tbody = document.getElementById('experience-table-body');
+    if (!tbody) return;
+
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--admin-text-sub); padding: 2rem;">No experience records found. Click "Add Experience" to create one.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = list.map((exp) => {
+      const badgeRaw = (exp.badge || 'EXPERIENCE').toUpperCase();
+      let badgeStyle = 'background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35);';
+      if (badgeRaw.includes('MASTER')) badgeStyle = 'background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.35);';
+      else if (badgeRaw.includes('LEAD')) badgeStyle = 'background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);';
+
+      const tagsArray = (exp.tags || '')
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean);
+
+      const tagsHtml = tagsArray.map(t => `<span style="display:inline-block; padding: 2px 8px; border-radius: 9999px; background: rgba(255,255,255,0.06); font-size: 0.75rem; margin: 2px; border: 1px solid rgba(255,255,255,0.1);">${t}</span>`).join('');
+
+      return `
+        <tr>
+          <td><span style="display:inline-block; padding: 3px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight:700; ${badgeStyle}">${badgeRaw}</span></td>
+          <td><strong>${exp.role_title || ''}</strong></td>
+          <td><i class="fas fa-building" style="color: var(--admin-accent); margin-right: 4px;"></i> ${exp.company || ''}</td>
+          <td><i class="far fa-calendar-alt" style="color: #f97316; margin-right: 4px;"></i> ${exp.duration_location || ''}</td>
+          <td style="max-width: 220px;">${tagsHtml || '<span style="color:var(--admin-text-sub);">-</span>'}</td>
+          <td><span style="font-weight:700; color: var(--admin-accent);">${exp.sort_order ?? 0}</span></td>
+          <td>
+            <div class="table-actions">
+              <button class="admin-btn admin-btn-outline" style="padding: 0.4rem 0.8rem;" onclick="openEditExperienceById(${exp.id})" title="Edit Experience"><i class="fas fa-pen"></i></button>
+              <button class="admin-btn admin-btn-danger" style="padding: 0.4rem 0.8rem;" onclick="deleteExperience(${exp.id})" title="Delete Experience"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Error loading experience:', err);
+  }
+}
+
+function openEditExperienceById(id) {
+  const exp = (window.experienceData || []).find(item => item.id == id);
+  if (!exp) return;
+  openEditExperienceModal(exp);
+}
+
+function openAddExperienceModal() {
+  openCrudModal(`
+    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-plus"></i> Add Work Experience</h3>
+    <form id="add-experience-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Role Title *</label>
+          <input type="text" name="role_title" class="form-control" placeholder="e.g. Cybersecurity Analyst Intern" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company / Org *</label>
+          <input type="text" name="company" class="form-control" placeholder="e.g. WSCUBE Tech / Tech Training" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Badge Pill Text</label>
+          <input type="text" name="badge" class="form-control" placeholder="e.g. MASTER CLASS, LEADERSHIP, HACKATHONS" value="EXPERIENCE">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Duration & Location</label>
+          <input type="text" name="duration_location" class="form-control" placeholder="e.g. 2024 • Online or 2023 - Present • Kanpur, UP">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description / Achievements</label>
+        <textarea name="description" class="form-control" rows="3" placeholder="Summary of responsibilities, achievements, and impact..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tech Stack Tags (Comma-separated)</label>
+          <input type="text" name="tags" class="form-control" placeholder="e.g. JavaScript, Node.js, Express, MongoDB, Git">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sort Order (Ascending: 1, 2, 3...)</label>
+          <input type="number" name="sort_order" class="form-control" value="${(window.experienceData?.length || 0) + 1}">
+        </div>
+      </div>
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center;">Save Experience</button>
+    </form>
+  `);
+
+  document.getElementById('add-experience-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const body = {
+      role_title: form.role_title.value,
+      company: form.company.value,
+      badge: form.badge.value,
+      duration_location: form.duration_location.value,
+      description: form.description.value,
+      tags: form.tags.value,
+      sort_order: parseInt(form.sort_order.value) || 0
+    };
+
+    try {
+      const res = await fetch('/api/experience', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast('Work Experience added successfully!');
+        closeCrudModal();
+        loadExperience();
+      } else {
+        showToast(result.message || 'Error adding experience', 'error');
+      }
+    } catch (err) {
+      showToast('Error saving experience', 'error');
+    }
+  });
+}
+
+function openEditExperienceModal(exp) {
+  openCrudModal(`
+    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-pen"></i> Edit Work Experience</h3>
+    <form id="edit-experience-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Role Title *</label>
+          <input type="text" id="edit-exp-role" class="form-control" value="${exp.role_title || ''}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company / Org *</label>
+          <input type="text" id="edit-exp-company" class="form-control" value="${exp.company || ''}" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Badge Pill Text</label>
+          <input type="text" id="edit-exp-badge" class="form-control" value="${exp.badge || 'EXPERIENCE'}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Duration & Location</label>
+          <input type="text" id="edit-exp-duration" class="form-control" value="${exp.duration_location || ''}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description / Achievements</label>
+        <textarea id="edit-exp-desc" class="form-control" rows="3">${exp.description || ''}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tech Stack Tags (Comma-separated)</label>
+          <input type="text" id="edit-exp-tags" class="form-control" value="${exp.tags || ''}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sort Order (Ascending: 1, 2, 3...)</label>
+          <input type="number" id="edit-exp-order" class="form-control" value="${exp.sort_order ?? 0}">
+        </div>
+      </div>
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center;">Save Changes</button>
+    </form>
+  `);
+
+  document.getElementById('edit-experience-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      role_title: document.getElementById('edit-exp-role').value,
+      company: document.getElementById('edit-exp-company').value,
+      badge: document.getElementById('edit-exp-badge').value,
+      duration_location: document.getElementById('edit-exp-duration').value,
+      description: document.getElementById('edit-exp-desc').value,
+      tags: document.getElementById('edit-exp-tags').value,
+      sort_order: parseInt(document.getElementById('edit-exp-order').value) || 0
+    };
+
+    try {
+      const res = await fetch(`/api/experience/${exp.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast('Work Experience updated successfully!');
+        closeCrudModal();
+        loadExperience();
+      } else {
+        showToast(result.message || 'Error updating experience', 'error');
+      }
+    } catch (err) {
+      showToast('Error updating experience', 'error');
+    }
+  });
+}
+
+async function deleteExperience(id) {
+  if (!confirm('Are you sure you want to delete this work experience entry?')) return;
+  try {
+    const res = await fetch(`/api/experience/${id}`, { method: 'DELETE' });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Work Experience deleted');
+      loadExperience();
+    } else {
+      showToast(result.message || 'Error deleting experience', 'error');
+    }
+  } catch (err) {
+    showToast('Network error while deleting', 'error');
   }
 }
 
@@ -903,8 +1238,229 @@ async function deleteProject(id) {
 }
 
 /* ==========================================================================
+   WORK EXPERIENCE CRUD
+   ========================================================================== */
+
+window.experienceList = [];
+
+async function loadExperience() {
+  try {
+    const res = await fetch('/api/experience');
+    const result = await res.json();
+    if (!result.success) return;
+    const list = result.data || [];
+    window.experienceList = list;
+
+    const countExp = document.getElementById('count-experience');
+    if (countExp) countExp.textContent = list.length;
+
+    const tbody = document.getElementById('experience-table-body');
+    if (!tbody) return;
+
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--admin-text-sub); padding: 2rem;">No experience records found. Click "+ Add Experience" to create one.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = list.map((e) => {
+      const rawBadge = (e.badge || 'EXPERIENCE').toUpperCase();
+      let badgeClass = 'badge-master';
+      if (rawBadge.includes('LEAD')) badgeClass = 'badge-lead';
+      else if (rawBadge.includes('HACK') || rawBadge.includes('TECH')) badgeClass = 'badge-hack';
+
+      return `
+        <tr>
+          <td><span class="exp-badge-pill ${badgeClass}">${rawBadge}</span></td>
+          <td><strong>${e.role_title}</strong></td>
+          <td><span style="color: var(--admin-accent); font-weight: 600;">${e.company}</span></td>
+          <td>${e.duration_location || ''}</td>
+          <td><span style="font-size: 0.82rem; color: var(--admin-text-sub);">${e.tags || ''}</span></td>
+          <td>${e.sort_order}</td>
+          <td>
+            <div class="table-actions">
+              <button class="admin-btn admin-btn-outline" style="padding: 0.4rem 0.8rem;" onclick='openEditExperienceById(${e.id})' title="Edit Experience"><i class="fas fa-pen"></i></button>
+              <button class="admin-btn admin-btn-danger" style="padding: 0.4rem 0.8rem;" onclick="deleteExperience(${e.id})" title="Delete Experience"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Error loading experience:', err);
+  }
+}
+
+function openEditExperienceById(id) {
+  const e = (window.experienceList || []).find(item => item.id == id);
+  if (!e) return;
+  openEditExperienceModal(e);
+}
+
+function openAddExperienceModal() {
+  openCrudModal(`
+    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-plus"></i> Add Work Experience</h3>
+    <form id="add-exp-form">
+      <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Role Title *</label>
+          <input type="text" id="exp-role" class="form-control" placeholder="e.g. Cybersecurity Analyst Intern" required>
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Badge Label</label>
+          <input type="text" id="exp-badge" class="form-control" placeholder="e.g. MASTER CLASS, LEADERSHIP" value="EXPERIENCE">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Company / Organization *</label>
+          <input type="text" id="exp-company" class="form-control" placeholder="e.g. WSCUBE Tech / Tech Training" required>
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Duration & Location</label>
+          <input type="text" id="exp-duration" class="form-control" placeholder="e.g. 2024 • online" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description / Responsibilities</label>
+        <textarea id="exp-desc" class="form-control" rows="3" placeholder="Learn fundaments of Networking and Cyber security..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex: 3;">
+          <label class="form-label">Tech Stack / Skills Tags (comma separated)</label>
+          <input type="text" id="exp-tags" class="form-control" placeholder="Networking Fundaments, TCP/IP models, Cybersecurity Fundamentals">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Sort Order</label>
+          <input type="number" id="exp-order" class="form-control" value="0">
+        </div>
+      </div>
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Add Experience</button>
+    </form>
+  `);
+
+  document.getElementById('add-exp-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      role_title: document.getElementById('exp-role').value.trim(),
+      company: document.getElementById('exp-company').value.trim(),
+      badge: document.getElementById('exp-badge').value.trim() || 'EXPERIENCE',
+      duration_location: document.getElementById('exp-duration').value.trim(),
+      description: document.getElementById('exp-desc').value.trim(),
+      tags: document.getElementById('exp-tags').value.trim(),
+      sort_order: parseInt(document.getElementById('exp-order').value) || 0
+    };
+    const res = await fetch('/api/experience', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Experience added successfully!');
+      closeCrudModal();
+      loadExperience();
+    } else {
+      showToast(result.message || 'Failed to add experience', 'error');
+    }
+  });
+}
+
+function openEditExperienceModal(exp) {
+  openCrudModal(`
+    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-pen"></i> Edit Work Experience</h3>
+    <form id="edit-exp-form">
+      <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Role Title *</label>
+          <input type="text" id="eexp-role" class="form-control" value="${exp.role_title}" required>
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Badge Label</label>
+          <input type="text" id="eexp-badge" class="form-control" value="${exp.badge || 'EXPERIENCE'}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Company / Organization *</label>
+          <input type="text" id="eexp-company" class="form-control" value="${exp.company}" required>
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Duration & Location</label>
+          <input type="text" id="eexp-duration" class="form-control" value="${exp.duration_location || ''}" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description / Responsibilities</label>
+        <textarea id="eexp-desc" class="form-control" rows="3">${exp.description || ''}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex: 3;">
+          <label class="form-label">Tech Stack / Skills Tags (comma separated)</label>
+          <input type="text" id="eexp-tags" class="form-control" value="${exp.tags || ''}">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Sort Order</label>
+          <input type="number" id="eexp-order" class="form-control" value="${exp.sort_order}">
+        </div>
+      </div>
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Save Changes</button>
+    </form>
+  `);
+
+  document.getElementById('edit-exp-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      role_title: document.getElementById('eexp-role').value.trim(),
+      company: document.getElementById('eexp-company').value.trim(),
+      badge: document.getElementById('eexp-badge').value.trim() || 'EXPERIENCE',
+      duration_location: document.getElementById('eexp-duration').value.trim(),
+      description: document.getElementById('eexp-desc').value.trim(),
+      tags: document.getElementById('eexp-tags').value.trim(),
+      sort_order: parseInt(document.getElementById('eexp-order').value) || 0
+    };
+    const res = await fetch(`/api/experience/${exp.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Experience updated successfully!');
+      closeCrudModal();
+      loadExperience();
+    } else {
+      showToast(result.message || 'Failed to update experience', 'error');
+    }
+  });
+}
+
+function deleteExperience(id) {
+  if (!confirm('Are you sure you want to delete this experience record?')) return;
+  fetch(`/api/experience/${id}`, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(result => {
+      if (result.success) {
+        showToast('Experience record deleted');
+        loadExperience();
+      }
+    });
+}
+
+/* ==========================================================================
    EDUCATION CRUD
    ========================================================================== */
+
+function escapeAdminHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+window.educationData = [];
 
 async function loadEducation() {
   try {
@@ -912,144 +1468,301 @@ async function loadEducation() {
     const result = await res.json();
     if (!result.success) return;
     const list = result.data || [];
+    window.educationData = list;
 
     const countEdu = document.getElementById('count-education');
     if (countEdu) countEdu.textContent = list.length;
 
     const tbody = document.getElementById('education-table-body');
+    const emptyState = document.getElementById('education-empty-state');
     if (!tbody) return;
 
-    tbody.innerHTML = list.map((e) => `
-      <tr>
-        <td><strong>${e.degree}</strong></td>
-        <td>${e.institution}</td>
-        <td><span class="status-badge approved">${e.pass_year}</span></td>
-        <td>
-          <div class="table-actions">
-            <button class="admin-btn admin-btn-outline" style="padding: 0.4rem 0.8rem;" onclick='openEditEducationModal(${JSON.stringify(e)})'><i class="fas fa-pen"></i></button>
-            <button class="admin-btn admin-btn-danger" style="padding: 0.4rem 0.8rem;" onclick="deleteEducation(${e.id})"><i class="fas fa-trash"></i></button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+    if (list.length === 0) {
+      tbody.innerHTML = '';
+      if (emptyState) emptyState.style.display = 'block';
+      return;
+    }
+
+    if (emptyState) emptyState.style.display = 'none';
+
+    tbody.innerHTML = list.map((e, idx) => {
+      const year = e.year || e.pass_year || '';
+      const title = e.title || e.degree || '';
+      const institute = e.institute || e.institution || '';
+      const percentage = e.percentage || '';
+      const isOngoing = Boolean(e.isOngoing || e.is_ongoing || /ongoing/i.test(year));
+      const sortOrder = e.sortOrder ?? e.sort_order ?? (idx + 1);
+
+      const statusBadge = isOngoing
+        ? `<span class="status-badge approved" style="display:inline-flex; align-items:center; gap:0.4rem;"><i class="fas fa-circle-dot" style="font-size:0.6rem; color:#22c55e;"></i> Ongoing</span>`
+        : `<span class="status-badge" style="background:rgba(255,255,255,0.06); color:var(--admin-text-sub);">Completed</span>`;
+
+      const percentageDisplay = percentage
+        ? `<span class="status-badge" style="background:rgba(34, 197, 94, 0.12); color:#22c55e; border:1px solid rgba(34, 197, 94, 0.3); font-weight:700;">${escapeAdminHtml(percentage)}</span>`
+        : (isOngoing ? `<span style="font-size:0.8rem; color:var(--admin-text-sub); font-style:italic;">In Progress</span>` : `<span style="color:var(--admin-text-muted);">—</span>`);
+
+      return `
+        <tr>
+          <td><span class="status-badge approved" style="font-family:monospace;">${escapeAdminHtml(year)}</span></td>
+          <td><strong style="color:#fff;">${escapeAdminHtml(title)}</strong></td>
+          <td><i class="fas fa-building" style="color:var(--admin-accent); font-size:0.8rem; margin-right:0.35rem; opacity:0.8;"></i>${escapeAdminHtml(institute)}</td>
+          <td>${percentageDisplay}</td>
+          <td>${statusBadge}</td>
+          <td><span class="nav-badge-pill" style="display:inline-block; font-family:monospace;">${sortOrder}</span></td>
+          <td>
+            <div class="table-actions">
+              <button class="admin-btn admin-btn-outline" title="Edit Qualification" style="padding: 0.4rem 0.8rem;" onclick="openEditEducationModalById(${e.id})">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button class="admin-btn admin-btn-danger" title="Delete Qualification" style="padding: 0.4rem 0.8rem;" onclick="deleteEducation(${e.id})">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
   } catch (err) {
     console.error('Error loading education:', err);
   }
 }
 
+window.openEditEducationModalById = function(id) {
+  const edu = (window.educationData || []).find(x => x.id === id);
+  if (edu) openEditEducationModal(edu);
+};
+
 function openAddEducationModal() {
+  const currentTotal = (window.educationData || []).length;
+  const nextOrder = currentTotal + 1;
+
   openCrudModal(`
-    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-plus"></i> Add Academic Qualification</h3>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; border-bottom: 1px solid var(--admin-border); padding-bottom: 0.75rem;">
+      <h3 style="margin: 0; display: flex; align-items: center; gap: 0.6rem;">
+        <i class="fas fa-graduation-cap" style="color: var(--admin-accent);"></i> Add Academic Qualification
+      </h3>
+    </div>
     <form id="add-edu-form">
-      <div class="form-group">
-        <label class="form-label">Degree / Qualification *</label>
-        <input type="text" id="edu-degree" class="form-control" required placeholder="Master of Science...">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Institution / University *</label>
-        <input type="text" id="edu-inst" class="form-control" required placeholder="NIT / University">
-      </div>
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Passing Year / Duration *</label>
-          <input type="text" id="edu-year" class="form-control" placeholder="2023 - 2025" required>
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label" for="edu-degree">Degree / Class Title *</label>
+          <input type="text" id="edu-degree" class="form-control" required placeholder="e.g. Bachelor of Computer Applications">
         </div>
-        <div class="form-group">
-          <label class="form-label">Sort Order</label>
-          <input type="number" id="edu-order" class="form-control" value="0">
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label" for="edu-year">Year / Duration *</label>
+          <input type="text" id="edu-year" class="form-control" required placeholder="e.g. 2024 - 2027">
         </div>
       </div>
+
       <div class="form-group">
-        <label class="form-label">Grade / Highlights</label>
-        <textarea id="edu-details" class="form-control" rows="2"></textarea>
+        <label class="form-label" for="edu-inst">Institute / University / Board *</label>
+        <input type="text" id="edu-inst" class="form-control" required placeholder="e.g. CSJM University, Kanpur or CBSE Board">
       </div>
-      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center;">Save Qualification</button>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label" for="edu-percentage">Percentage (Optional)</label>
+          <input type="text" id="edu-percentage" class="form-control" placeholder="e.g. 76% or 81">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label" for="edu-order">Sort Order</label>
+          <input type="number" id="edu-order" class="form-control" value="${nextOrder}" min="1">
+        </div>
+      </div>
+
+      <div class="form-group" style="background: rgba(255,255,255,0.03); border: 1px solid var(--admin-border); padding: 0.9rem 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin: 0;">
+          <input type="checkbox" id="edu-ongoing" style="width: 18px; height: 18px; accent-color: var(--admin-accent); cursor: pointer;">
+          <div>
+            <strong style="color: #fff; font-size: 0.9rem;">Currently Pursuing (Ongoing)</strong>
+            <p style="margin: 0; font-size: 0.78rem; color: var(--admin-text-sub);">Displays glowing pulse beacon on the portfolio</p>
+          </div>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+        <button type="button" class="admin-btn admin-btn-outline" onclick="closeCrudModal()">Cancel</button>
+        <button type="submit" id="add-edu-submit-btn" class="admin-btn admin-btn-primary">
+          <i class="fas fa-check"></i> Save Qualification
+        </button>
+      </div>
     </form>
   `);
 
   document.getElementById('add-edu-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const body = {
-      degree: document.getElementById('edu-degree').value,
-      institution: document.getElementById('edu-inst').value,
-      pass_year: document.getElementById('edu-year').value,
-      grade_or_details: document.getElementById('edu-details').value,
-      sort_order: parseInt(document.getElementById('edu-order').value) || 0
-    };
-    const res = await fetch('/api/education', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const result = await res.json();
-    if (result.success) {
-      showToast('Education record added!');
-      closeCrudModal();
-      loadEducation();
+    const btn = document.getElementById('add-edu-submit-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    }
+
+    const title = document.getElementById('edu-degree').value.trim();
+    const institute = document.getElementById('edu-inst').value.trim();
+    const year = document.getElementById('edu-year').value.trim();
+    const percentage = document.getElementById('edu-percentage').value.trim();
+    const isOngoing = document.getElementById('edu-ongoing').checked;
+    const sortOrder = parseInt(document.getElementById('edu-order').value) || nextOrder;
+
+    try {
+      const res = await fetch('/api/education', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          institute,
+          year,
+          percentage,
+          isOngoing,
+          sortOrder
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast('Academic qualification added successfully!');
+        closeCrudModal();
+        loadEducation();
+      } else {
+        showToast(result.message || 'Failed to add qualification', 'error');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-check"></i> Save Qualification';
+        }
+      }
+    } catch (err) {
+      showToast('Network or server error', 'error');
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Save Qualification';
+      }
     }
   });
 }
 
-function openEditEducationModal(e) {
+function openEditEducationModal(edu) {
+  const isOngoing = Boolean(edu.isOngoing || edu.is_ongoing || /ongoing/i.test(edu.pass_year || edu.year));
+  const year = edu.year || edu.pass_year || '';
+  const title = edu.title || edu.degree || '';
+  const institute = edu.institute || edu.institution || '';
+  const percentage = edu.percentage || (edu.grade_or_details && !/progress/i.test(edu.grade_or_details) ? edu.grade_or_details : '');
+  const sortOrder = edu.sortOrder ?? edu.sort_order ?? 0;
+
   openCrudModal(`
-    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-pen"></i> Edit Qualification</h3>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; border-bottom: 1px solid var(--admin-border); padding-bottom: 0.75rem;">
+      <h3 style="margin: 0; display: flex; align-items: center; gap: 0.6rem;">
+        <i class="fas fa-pen" style="color: var(--admin-accent);"></i> Edit Academic Qualification
+      </h3>
+    </div>
     <form id="edit-edu-form">
-      <div class="form-group">
-        <label class="form-label">Degree / Qualification *</label>
-        <input type="text" id="e-edu-degree" class="form-control" value="${e.degree}" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Institution *</label>
-        <input type="text" id="e-edu-inst" class="form-control" value="${e.institution}" required>
-      </div>
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Passing Year *</label>
-          <input type="text" id="e-edu-year" class="form-control" value="${e.pass_year}" required>
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label" for="e-edu-degree">Degree / Class Title *</label>
+          <input type="text" id="e-edu-degree" class="form-control" value="${escapeAdminHtml(title)}" required>
         </div>
-        <div class="form-group">
-          <label class="form-label">Sort Order</label>
-          <input type="number" id="e-edu-order" class="form-control" value="${e.sort_order}">
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label" for="e-edu-year">Year / Duration *</label>
+          <input type="text" id="e-edu-year" class="form-control" value="${escapeAdminHtml(year)}" required>
         </div>
       </div>
+
       <div class="form-group">
-        <label class="form-label">Grade / Highlights</label>
-        <textarea id="e-edu-details" class="form-control" rows="2">${e.grade_or_details || ''}</textarea>
+        <label class="form-label" for="e-edu-inst">Institute / University / Board *</label>
+        <input type="text" id="e-edu-inst" class="form-control" value="${escapeAdminHtml(institute)}" required>
       </div>
-      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center;">Save Changes</button>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label" for="e-edu-percentage">Percentage (Optional)</label>
+          <input type="text" id="e-edu-percentage" class="form-control" value="${escapeAdminHtml(percentage)}" placeholder="e.g. 76%">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label" for="e-edu-order">Sort Order</label>
+          <input type="number" id="e-edu-order" class="form-control" value="${sortOrder}" min="1">
+        </div>
+      </div>
+
+      <div class="form-group" style="background: rgba(255,255,255,0.03); border: 1px solid var(--admin-border); padding: 0.9rem 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin: 0;">
+          <input type="checkbox" id="e-edu-ongoing" ${isOngoing ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--admin-accent); cursor: pointer;">
+          <div>
+            <strong style="color: #fff; font-size: 0.9rem;">Currently Pursuing (Ongoing)</strong>
+            <p style="margin: 0; font-size: 0.78rem; color: var(--admin-text-sub);">Displays glowing pulse beacon on the portfolio</p>
+          </div>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+        <button type="button" class="admin-btn admin-btn-outline" onclick="closeCrudModal()">Cancel</button>
+        <button type="submit" id="edit-edu-submit-btn" class="admin-btn admin-btn-primary">
+          <i class="fas fa-check"></i> Save Changes
+        </button>
+      </div>
     </form>
   `);
 
   document.getElementById('edit-edu-form').addEventListener('submit', async (ev) => {
     ev.preventDefault();
-    const body = {
-      degree: document.getElementById('e-edu-degree').value,
-      institution: document.getElementById('e-edu-inst').value,
-      pass_year: document.getElementById('e-edu-year').value,
-      grade_or_details: document.getElementById('e-edu-details').value,
-      sort_order: parseInt(document.getElementById('e-edu-order').value) || 0
-    };
-    const res = await fetch(`/api/education/${e.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const result = await res.json();
-    if (result.success) {
-      showToast('Education updated!');
-      closeCrudModal();
-      loadEducation();
+    const btn = document.getElementById('edit-edu-submit-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    }
+
+    const titleVal = document.getElementById('e-edu-degree').value.trim();
+    const instVal = document.getElementById('e-edu-inst').value.trim();
+    const yearVal = document.getElementById('e-edu-year').value.trim();
+    const percVal = document.getElementById('e-edu-percentage').value.trim();
+    const ongoingVal = document.getElementById('e-edu-ongoing').checked;
+    const orderVal = parseInt(document.getElementById('e-edu-order').value) || sortOrder;
+
+    try {
+      const res = await fetch(`/api/education/${edu.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: titleVal,
+          institute: instVal,
+          year: yearVal,
+          percentage: percVal,
+          isOngoing: ongoingVal,
+          sortOrder: orderVal
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast('Academic qualification updated successfully!');
+        closeCrudModal();
+        loadEducation();
+      } else {
+        showToast(result.message || 'Failed to update qualification', 'error');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-check"></i> Save Changes';
+        }
+      }
+    } catch (err) {
+      showToast('Network or server error', 'error');
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Save Changes';
+      }
     }
   });
 }
 
 async function deleteEducation(id) {
-  if (!confirm('Delete this education record?')) return;
-  const res = await fetch(`/api/education/${id}`, { method: 'DELETE' });
-  const result = await res.json();
-  if (result.success) {
-    showToast('Education deleted');
-    loadEducation();
+  if (!confirm('Kya aap sach me delete karna chahte ho?')) return;
+  try {
+    const res = await fetch(`/api/education/${id}`, { method: 'DELETE' });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Academic qualification deleted successfully!');
+      loadEducation();
+    } else {
+      showToast(result.message || 'Failed to delete qualification', 'error');
+    }
+  } catch (err) {
+    showToast('Failed to delete qualification', 'error');
   }
 }
 

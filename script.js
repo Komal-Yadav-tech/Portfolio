@@ -24,11 +24,81 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Setup Modals
   initReviewModal();
   initCertModal();
+  initThemePaletteModal();
 });
 
 /* ==========================================================================
    THEME & MODE CONTROLLER
    ========================================================================== */
+
+const THEMES_LIST = [
+  { id: 'midnight-blue', name: 'Midnight Blue', desc: 'Deep sapphire, cyan & cobalt', colors: ['#060913', '#38bdf8', '#6366f1'] },
+  { id: 'crimson-rudra', name: 'Crimson Rudra', desc: 'Velvet obsidian, fierce scarlet', colors: ['#0d0406', '#f43f5e', '#ff5925'] },
+  { id: 'emerald-dark', name: 'Emerald Dark', desc: 'Deep forest obsidian, neon jade', colors: ['#030d08', '#10b981', '#14b8a6'] },
+  { id: 'sunset-pink', name: 'Sunset Pink', desc: 'Dusk violet, hot magenta', colors: ['#0f0514', '#ec4899', '#f97316'] },
+  { id: 'cyberpunk', name: 'Cyberpunk', desc: 'Neon yellow, electric cyan', colors: ['#09090e', '#facc15', '#06b6d4'] },
+  { id: 'royal-purple', name: 'Royal Purple', desc: 'Imperial amethyst, radiant violet', colors: ['#090514', '#a855f7', '#8b5cf6'] },
+  { id: 'golden-amber', name: 'Golden Amber', desc: 'Rich onyx, champagne gold', colors: ['#0d0a04', '#f59e0b', '#fbbf24'] },
+  { id: 'slate-steel', name: 'Slate Steel', desc: 'Titanium gray, arctic blue', colors: ['#0b0f14', '#94a3b8', '#cbd5e1'] },
+  { id: 'rose-gold', name: 'Rose Gold', desc: 'Blush metallic, warm copper', colors: ['#0f080a', '#fb7185', '#fda4af'] },
+  { id: 'ocean-teal', name: 'Ocean Teal', desc: 'Abyssal deep blue, seafoam teal', colors: ['#030e12', '#14b8a6', '#06b6d4'] },
+  { id: 'forest-lime', name: 'Forest Lime', desc: 'Dark jungle black, hyper lime', colors: ['#070d04', '#84cc16', '#a3e635'] },
+  { id: 'deep-space', name: 'Deep Space', desc: 'Stellar black, cosmic indigo', colors: ['#040407', '#818cf8', '#c084fc'] }
+];
+
+function initThemePaletteModal() {
+  const paletteBtn = document.getElementById('theme-palette-btn');
+  const modal = document.getElementById('theme-modal');
+  const closeBtn = document.getElementById('close-theme-modal-btn');
+  const grid = document.getElementById('frontend-themes-grid');
+  if (!paletteBtn || !modal || !grid) return;
+
+  function renderThemeCards() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'midnight-blue';
+    grid.innerHTML = THEMES_LIST.map(t => `
+      <div class="theme-picker-card ${t.id === currentTheme ? 'active' : ''}" onclick="applyGlobalTheme('${t.id}')">
+        <div class="theme-picker-swatches">
+          <span style="background: ${t.colors[0]};"></span>
+          <span style="background: ${t.colors[1]};"></span>
+          <span style="background: ${t.colors[2]};"></span>
+        </div>
+        <div class="theme-picker-name">${t.name}</div>
+        <div class="theme-picker-desc">${t.desc}</div>
+      </div>
+    `).join('');
+  }
+
+  paletteBtn.addEventListener('click', () => {
+    renderThemeCards();
+    modal.classList.add('open');
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => modal.classList.remove('open'));
+  }
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('open');
+  });
+}
+
+window.applyGlobalTheme = async function(themeId) {
+  document.documentElement.setAttribute('data-theme', themeId);
+  localStorage.setItem('komal_portfolio_theme', themeId);
+  const modal = document.getElementById('theme-modal');
+  if (modal) modal.classList.remove('open');
+  showToast(`Theme switched to ${themeId.replace(/-/g, ' ').toUpperCase()}`);
+
+  try {
+    await fetch('/api/theme', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active_theme: themeId })
+    });
+  } catch (err) {
+    // Non-fatal if offline
+  }
+};
 
 function toggleLightDarkMode() {
   const currentMode = document.documentElement.getAttribute('data-mode') || 'dark';
@@ -52,7 +122,7 @@ function updateThemeToggleIcon() {
 
 async function fetchAndHydrateAll() {
   try {
-    const [profileRes, skillsRes, projectsRes, eduRes, certsRes, reviewsRes, themeRes, customRes] = await Promise.allSettled([
+    const [profileRes, skillsRes, projectsRes, eduRes, certsRes, reviewsRes, themeRes, customRes, expRes] = await Promise.allSettled([
       fetch('/api/profile').then(r => r.json()),
       fetch('/api/skills').then(r => r.json()),
       fetch('/api/projects').then(r => r.json()),
@@ -60,7 +130,8 @@ async function fetchAndHydrateAll() {
       fetch('/api/certifications').then(r => r.json()),
       fetch('/api/reviews').then(r => r.json()),
       fetch('/api/theme').then(r => r.json()),
-      fetch('/api/custom-content').then(r => r.json())
+      fetch('/api/custom-content').then(r => r.json()),
+      fetch('/api/experience').then(r => r.json())
     ]);
 
     if (themeRes.status === 'fulfilled' && themeRes.value.success && themeRes.value.data) {
@@ -77,6 +148,10 @@ async function fetchAndHydrateAll() {
 
     if (skillsRes.status === 'fulfilled' && skillsRes.value.success && skillsRes.value.data) {
       hydrateSkills(skillsRes.value.data);
+    }
+
+    if (expRes.status === 'fulfilled' && expRes.value.success && expRes.value.data) {
+      hydrateExperience(expRes.value.data);
     }
 
     if (projectsRes.status === 'fulfilled' && projectsRes.value.success && projectsRes.value.data) {
@@ -292,14 +367,284 @@ function hydrateProfile(p) {
   }
 }
 
+window.switchSkillsTab = function(tab) {
+  const pills = document.querySelectorAll('.skills-tab-pill');
+  pills.forEach(p => p.classList.remove('active'));
+
+  const activeBtn = document.getElementById(`tab-${tab}-skills`) || document.querySelector(`[data-skill-tab="${tab}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  const techBlock = document.getElementById('tech-skills-block');
+  const softBlock = document.getElementById('soft-skills-block');
+  const dualContainer = document.getElementById('skills-dual-container');
+
+  if (tab === 'all') {
+    if (techBlock) techBlock.style.display = '';
+    if (softBlock) softBlock.style.display = '';
+    if (dualContainer && window.innerWidth > 992) dualContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
+  } else if (tab === 'technical') {
+    if (techBlock) techBlock.style.display = '';
+    if (softBlock) softBlock.style.display = 'none';
+    if (dualContainer) dualContainer.style.gridTemplateColumns = '1fr';
+  } else if (tab === 'soft') {
+    if (techBlock) techBlock.style.display = 'none';
+    if (softBlock) softBlock.style.display = '';
+    if (dualContainer) dualContainer.style.gridTemplateColumns = '1fr';
+  }
+};
+
 function hydrateSkills(skills) {
-  const container = document.getElementById('skills-marquee-track');
-  if (!container || !skills.length) return;
-  const itemsHtml = skills.map(s => `
-    <div class="marquee-item"><i class="${s.icon || 'fas fa-cube'}"></i> ${s.name}</div>
-  `).join('');
-  // Render duplicate set for continuous infinite marquee loop
-  container.innerHTML = itemsHtml + itemsHtml;
+  if (!skills || !skills.length) return;
+
+  const techSkills = skills.filter(s => (s.category || 'technical') === 'technical');
+  const softSkills = skills.filter(s => s.category === 'soft');
+
+  // Update counts
+  const techBadge = document.getElementById('tech-skills-badge');
+  if (techBadge) techBadge.textContent = `${techSkills.length} Skills`;
+
+  const softBadge = document.getElementById('soft-skills-badge');
+  if (softBadge) softBadge.textContent = `${softSkills.length} Skills`;
+
+  // Hydrate Technical Skills Grid
+  const techGrid = document.getElementById('tech-skills-grid');
+  if (techGrid) {
+    techGrid.innerHTML = techSkills.map(s => `
+      <div class="skill-chip-item glass-sheen">
+        <div class="skill-chip-icon"><i class="${s.icon || 'fas fa-cube'}"></i></div>
+        <div class="skill-chip-info">
+          <span class="skill-chip-name">${s.name}</span>
+          <span class="skill-chip-sub">Technical Tool</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Hydrate Soft Skills Grid
+  const softGrid = document.getElementById('soft-skills-grid');
+  if (softGrid) {
+    softGrid.innerHTML = softSkills.map(s => `
+      <div class="skill-chip-item glass-sheen">
+        <div class="skill-chip-icon"><i class="${s.icon || 'fas fa-brain'}"></i></div>
+        <div class="skill-chip-info">
+          <span class="skill-chip-name">${s.name}</span>
+          <span class="skill-chip-sub">Core Competency</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Ambient Infinite Marquee Track (all skills)
+  const marqueeContainer = document.getElementById('skills-marquee-track');
+  if (marqueeContainer) {
+    const itemsHtml = skills.map(s => `
+      <div class="marquee-item"><i class="${s.icon || 'fas fa-cube'}"></i> ${s.name}</div>
+    `).join('');
+    marqueeContainer.innerHTML = itemsHtml + itemsHtml;
+  }
+}
+
+/* ==========================================================================
+   WORK EXPERIENCE HYDRATION & INTERACTIVE CAROUSEL
+   ========================================================================== */
+
+window.currentExpIndex = 0;
+window.experienceData = [];
+
+function parseTechTags(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) {
+    return raw.map(t => String(t).trim()).filter(Boolean);
+  }
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed.map(t => String(t).trim()).filter(Boolean);
+      } catch (e) {}
+    }
+    return trimmed.split(',').map(t => t.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function hydrateExperience(experiences) {
+  const track = document.getElementById('experience-cards-track');
+  const dotsContainer = document.getElementById('experience-dots-container');
+  const navPill = document.querySelector('.exp-nav-pill');
+  if (!track) return;
+
+  // Empty state handling
+  if (!experiences || !experiences.length) {
+    track.innerHTML = `
+      <div class="exp-card" style="text-align: center; padding: 3rem 1.5rem;">
+        <i class="fas fa-briefcase" style="font-size: 2.2rem; color: var(--accent-primary); margin-bottom: 1rem; opacity: 0.7;"></i>
+        <h3 style="font-family: var(--font-display); color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.3rem;">No Work Experience Added Yet</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">Experience records added in the Admin Panel will appear here.</p>
+      </div>
+    `;
+    if (navPill) navPill.style.display = 'none';
+    if (dotsContainer) dotsContainer.innerHTML = '';
+    return;
+  }
+
+  if (navPill) navPill.style.display = 'inline-flex';
+
+  // Strict Ascending Sort by sort_order / sortOrder (1 -> 2 -> 3)
+  const sorted = [...experiences].sort((a, b) => {
+    const orderA = Number(a.sort_order ?? a.sortOrder ?? 0);
+    const orderB = Number(b.sort_order ?? b.sortOrder ?? 0);
+    return orderA - orderB;
+  });
+
+  window.experienceData = sorted;
+  window.currentExpIndex = 0;
+
+  // Always reset container innerHTML to avoid duplication
+  track.innerHTML = '';
+
+  // Render Discrete Experience Slides (Only 1 visible at a time)
+  track.innerHTML = sorted.map((exp, idx) => {
+    const roleTitle = exp.role_title || exp.roleTitle || exp.role || 'Experience Role';
+    const company = exp.company || exp.org || exp.organization || 'Tech Organization';
+    const rawBadge = (exp.badge || 'EXPERIENCE').toUpperCase();
+    let badgeClass = 'badge-master';
+    if (rawBadge.includes('LEAD')) badgeClass = 'badge-lead';
+    else if (rawBadge.includes('HACK') || rawBadge.includes('TECH') || rawBadge.includes('DEV')) badgeClass = 'badge-hack';
+
+    const durationLocation = exp.duration_location || exp.durationLocation || exp.duration || exp.location || 'Ongoing';
+    const description = exp.description || exp.desc || '';
+
+    // Parse and render tech chips with guaranteed separation and rounded chip styling
+    const tagsList = parseTechTags(exp.tags ?? exp.techStackTags ?? exp.skills ?? '');
+    const tagsHtml = tagsList.length
+      ? tagsList.map(t => `<span class="exp-tag-item"><i class="fas fa-cube" style="font-size: 0.7rem; opacity: 0.75;"></i>${t}</span>`).join('')
+      : `<span class="exp-tag-item"><i class="fas fa-layer-group" style="font-size: 0.7rem; opacity: 0.75;"></i>Professional Skills</span>`;
+
+    return `
+      <div class="exp-card-slide ${idx === 0 ? 'active' : ''}" data-index="${idx}">
+        <div class="exp-card glass-card">
+          <div class="exp-card-top-meta">
+            <span class="exp-badge-pill ${badgeClass}">${rawBadge}</span>
+            <h3 class="exp-role-title">${roleTitle}</h3>
+            <div class="exp-company-text">
+              <i class="fas fa-building"></i>
+              <span>${company}</span>
+            </div>
+            <div class="exp-date-pill">
+              <i class="far fa-calendar-alt"></i>
+              <span>${durationLocation}</span>
+            </div>
+          </div>
+          <p class="exp-description">${description}</p>
+          <hr class="exp-divider">
+          <div class="exp-tags-section">
+            <div class="exp-tags-wrapper">
+              ${tagsHtml}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Render Pagination Dots
+  if (dotsContainer) {
+    dotsContainer.innerHTML = sorted.map((_, i) => `
+      <button class="exp-dot ${i === 0 ? 'active' : ''}" aria-label="Go to Experience Slide ${i + 1}" onclick="goToExperienceSlide(${i})"></button>
+    `).join('');
+  }
+
+  updateExperienceSlides();
+  setupExperienceGestures();
+}
+
+function updateExperienceSlides() {
+  const total = window.experienceData.length;
+  if (!total) return;
+
+  // Clamp current index
+  if (window.currentExpIndex < 0) window.currentExpIndex = total - 1;
+  if (window.currentExpIndex >= total) window.currentExpIndex = 0;
+
+  // 1. Toggle discrete active slide
+  const slides = document.querySelectorAll('.exp-card-slide');
+  slides.forEach((slide, idx) => {
+    if (idx === window.currentExpIndex) {
+      slide.classList.add('active');
+    } else {
+      slide.classList.remove('active');
+    }
+  });
+
+  // 2. Update Counter "01 / 03"
+  const currentNumEl = document.getElementById('exp-current-num');
+  const totalNumEl = document.getElementById('exp-total-num');
+  if (currentNumEl) currentNumEl.textContent = String(window.currentExpIndex + 1).padStart(2, '0');
+  if (totalNumEl) totalNumEl.textContent = String(total).padStart(2, '0');
+
+  // 3. Update Dots
+  const dots = document.querySelectorAll('.exp-dot');
+  dots.forEach((dot, idx) => {
+    if (idx === window.currentExpIndex) dot.classList.add('active');
+    else dot.classList.remove('active');
+  });
+}
+
+window.slideExperience = function(direction) {
+  const total = window.experienceData.length;
+  if (!total) return;
+  window.currentExpIndex = (window.currentExpIndex + direction + total) % total;
+  updateExperienceSlides();
+};
+
+window.goToExperienceSlide = function(idx) {
+  const total = window.experienceData.length;
+  if (!total || idx < 0 || idx >= total) return;
+  window.currentExpIndex = idx;
+  updateExperienceSlides();
+};
+
+let expGesturesAttached = false;
+function setupExperienceGestures() {
+  if (expGesturesAttached) return;
+  expGesturesAttached = true;
+
+  // Keyboard Navigation: Left / Right Arrow
+  window.addEventListener('keydown', (e) => {
+    if (!window.experienceData || !window.experienceData.length) return;
+    const section = document.getElementById('experience');
+    if (!section) return;
+    const rect = section.getBoundingClientRect();
+    if (rect.top <= window.innerHeight * 0.75 && rect.bottom >= window.innerHeight * 0.25) {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        window.slideExperience(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        window.slideExperience(1);
+      }
+    }
+  });
+
+  // Mobile Swipe Navigation
+  const track = document.getElementById('experience-cards-track');
+  if (track) {
+    let touchStartX = 0;
+    let touchEndX = 0;
+    track.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].clientX;
+    }, { passive: true });
+    track.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].clientX;
+      const diff = touchEndX - touchStartX;
+      if (Math.abs(diff) > 40) {
+        if (diff < 0) window.slideExperience(1); // Swipe left -> Next
+        else window.slideExperience(-1); // Swipe right -> Previous
+      }
+    }, { passive: true });
+  }
 }
 
 function hydrateProjects(projects) {
@@ -333,17 +678,114 @@ function hydrateProjects(projects) {
   `).join('');
 }
 
+function escapePortfolioHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function hydrateEducation(eduList) {
   const container = document.getElementById('education-timeline');
-  if (!container || !eduList.length) return;
-  container.innerHTML = eduList.map(e => `
-    <div class="timeline-card" data-id="${e.id}">
-      <span class="timeline-year-badge">${e.pass_year}</span>
-      <h3 class="timeline-degree">${e.degree}</h3>
-      <div class="timeline-institution">${e.institution}</div>
-      ${e.grade_or_details ? `<div class="timeline-details">${e.grade_or_details}</div>` : ''}
-    </div>
-  `).join('');
+  if (!container) return;
+
+  // Render se pehle container innerHTML = '' karo taaki duplicate na ho
+  container.innerHTML = '';
+
+  if (!eduList || !eduList.length) {
+    container.innerHTML = `
+      <div style="padding: 1.5rem 0; color: var(--text-muted); font-size: 0.95rem;">
+        No education records available.
+      </div>
+    `;
+    return;
+  }
+
+  // Sort by sortOrder ascending (latest on top)
+  const sorted = [...eduList].sort((a, b) => {
+    const orderA = a.sortOrder ?? a.sort_order ?? 0;
+    const orderB = b.sortOrder ?? b.sort_order ?? 0;
+    return orderA - orderB;
+  });
+
+  // Render clean minimal text-first rows
+  container.innerHTML = sorted.map((e, idx) => {
+    const year = (e.year || e.pass_year || '').trim();
+    const title = (e.title || e.degree || '').trim();
+    const institute = (e.institute || e.institution || '').trim();
+    const percentage = (e.percentage || (e.grade_or_details && !/progress/i.test(e.grade_or_details) ? e.grade_or_details : '')).trim();
+    const isOngoing = Boolean(e.isOngoing || e.is_ongoing || /ongoing/i.test(year));
+
+    // Right-aligned Year / Status
+    let yearStatus = year;
+    if (isOngoing && !/ongoing/i.test(yearStatus)) {
+      yearStatus = `${yearStatus} Ongoing`;
+    }
+
+    // Percentage chip (only if percentage exists, otherwise hide)
+    const percentageHtml = percentage
+      ? `<span class="edu-pct-chip">${escapePortfolioHtml(percentage)}</span>`
+      : '';
+
+    return `
+      <article class="edu-row" data-id="${e.id}" data-index="${idx}">
+        <div class="edu-row-left">
+          <h3 class="edu-degree">${escapePortfolioHtml(title)}</h3>
+          <p class="edu-institute">${escapePortfolioHtml(institute)}</p>
+        </div>
+        <div class="edu-row-right">
+          <time class="edu-year-status">${escapePortfolioHtml(yearStatus)}</time>
+          ${percentageHtml}
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  // SCROLL ANIMATION (Reference Style):
+  // IntersectionObserver (threshold ~0.15)
+  // Heading pehle reveal ho, phir entries ek ke baad ek (stagger 100ms)
+  // Opacity 0 -> 1, translateY(24px) -> 0, duration 600-700ms, easing cubic-bezier(0.22, 1, 0.36, 1)
+  // Animation sirf ek baar chale (unobserve on reveal)
+  // prefers-reduced-motion me animation band rakho
+  const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const headingWrap = document.getElementById('edu-heading-wrap');
+  const rows = container.querySelectorAll('.edu-row');
+
+  if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+    if (headingWrap) headingWrap.classList.add('is-visible');
+    rows.forEach(r => r.classList.add('is-visible'));
+    return;
+  }
+
+  const section = document.getElementById('education') || container;
+  const sectionObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Reveal heading first
+        if (headingWrap) {
+          headingWrap.classList.add('is-visible');
+        }
+
+        // Stagger entries by 100ms
+        rows.forEach((row, i) => {
+          setTimeout(() => {
+            row.classList.add('is-visible');
+          }, 150 + (i * 100));
+        });
+
+        // Unobserve after single trigger
+        obs.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.15,
+    rootMargin: '0px 0px -40px 0px'
+  });
+
+  sectionObserver.observe(section);
 }
 
 function hydrateCertifications(certs) {

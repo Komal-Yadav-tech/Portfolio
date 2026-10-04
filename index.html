@@ -71,12 +71,13 @@
           <span class="brand-name-text">KOMAL</span><span class="dot">.</span>
         </a>
 
-        <!-- 6 Navbar Links: Home, About, Skills, Projects, Certifications, Contact -->
+        <!-- 7 Navbar Links: Home, About, Skills, Experience, Projects, Certifications, Contact -->
         <nav>
           <ul class="nav-menu">
             <li><a href="#home" class="nav-link active">Home</a></li>
             <li><a href="#about" class="nav-link">About</a></li>
             <li><a href="#skills" class="nav-link">Skills</a></li>
+            <li><a href="#experience" class="nav-link">Experience</a></li>
             <li><a href="#projects" class="nav-link">Projects</a></li>
             <li><a href="#certifications" class="nav-link">Certifications</a></li>
             <li><a href="#contact" class="nav-link">Contact</a></li>
@@ -84,6 +85,9 @@
         </nav>
 
         <div class="header-actions">
+          <button id="theme-palette-btn" class="theme-toggle-btn" title="Choose Visual Theme Palette" aria-label="Theme Palette">
+            <i class="fas fa-palette"></i>
+          </button>
           <button id="theme-mode-toggle" class="theme-toggle-btn" title="Toggle Dark/Light Mode" aria-label="Toggle Mode">
             <i class="fas fa-sun"></i>
           </button>
@@ -105,6 +109,7 @@
         <li><a href="#home" class="nav-link">Home</a></li>
         <li><a href="#about" class="nav-link">About</a></li>
         <li><a href="#skills" class="nav-link">Skills</a></li>
+        <li><a href="#experience" class="nav-link">Experience</a></li>
         <li><a href="#projects" class="nav-link">Projects</a></li>
         <li><a href="#certifications" class="nav-link">Certifications</a></li>
         <li><a href="#contact" class="nav-link">Contact</a></li>
@@ -173,29 +178,32 @@
     <!-- 2. About, Education & Work Process Section (#about) -->
     <section id="about" class="about-section">
       <div class="container">
-        <div class="about-grid">
-          <div>
-            <span id="about-tag" class="section-tag">[ BACKGROUND & VISION ]</span>
-            <h2 id="about-title" class="section-title" style="font-size: 2.4rem; margin-bottom: 1.5rem;">
-              Transforming Ideas Into <span>Living Digital Art</span>
-            </h2>
-            <p id="about-desc1" style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.8;">
+        <div class="about-vision-box" style="margin-bottom: 4.5rem;">
+          <span id="about-tag" class="section-tag">[ BACKGROUND & VISION ]</span>
+          <h2 id="about-title" class="section-title" style="font-size: 2.4rem; margin-bottom: 1.5rem;">
+            Transforming Ideas Into <span>Living Digital Art</span>
+          </h2>
+          <div style="max-width: 850px;">
+            <p id="about-desc1" style="color: var(--text-secondary); margin-bottom: 1.2rem; line-height: 1.8; font-size: 1.05rem;">
               With a deep passion at the intersection of graphic design, computer science, and creative engineering, I specialize in architecting interactive web applications that leave a lasting impression.
             </p>
-            <p id="about-desc2" style="color: var(--text-secondary); line-height: 1.8;">
+            <p id="about-desc2" style="color: var(--text-secondary); line-height: 1.8; font-size: 1.05rem;">
               Every line of code is written with performance, accessibility, and aesthetic elegance in mind.
             </p>
           </div>
-
-          <div>
-            <h3 style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 1.2rem; color: var(--text-primary);">
-              <i class="fas fa-graduation-cap" style="color: var(--accent-primary);"></i> Academic Qualifications
-            </h3>
-            <div id="education-timeline" class="education-timeline">
-              <!-- Dynamic education records populated by script.js -->
-            </div>
-          </div>
         </div>
+
+        <!-- Education Section (Reference Style: Minimal, Text-First, Clean Rows) -->
+        <section class="education-section-block" id="education" aria-labelledby="edu-heading">
+          <div class="edu-heading-wrap" id="edu-heading-wrap">
+            <h2 class="edu-main-title" id="edu-heading">EDUCATION</h2>
+            <div class="edu-divider-line"></div>
+          </div>
+
+          <div id="education-timeline" class="edu-list-container" role="feed" aria-label="Education Milestones">
+            <!-- Dynamically populated by script.js from GET /api/education -->
+          </div>
+        </section>
 
         <!-- 3-Step Work Process -->
         <div class="work-process-container">
@@ -238,36 +246,107 @@
     </section>
 
     <!-- 3. Skills & Core Proficiencies Section (#skills) -->
-    <section id="skills" class="skills-section marquee-section">
+    <section id="skills" class="skills-section">
       <div class="container" style="margin-bottom: 2.5rem;">
         <div class="section-header">
-          <span id="skills-tag" class="section-tag">[ TECHNICAL PROFICIENCIES ]</span>
-          <h2 id="skills-title" class="section-title">Core Technologies & <span>Masteries</span></h2>
-          <p id="skills-desc" class="section-desc">Extensive toolkit covering frontend aesthetics, 3D WebGL computation, and robust backend engineering.</p>
+          <span id="skills-tag" class="section-tag">[ TECHNICAL & SOFT PROFICIENCIES ]</span>
+          <h2 id="skills-title" class="section-title">Core Competencies & <span>Skillsets</span></h2>
+          <p id="skills-desc" class="section-desc">Dual-spectrum proficiencies covering cutting-edge software engineering, data analytics, and essential interpersonal leadership.</p>
+        </div>
+
+        <!-- Interactive Skills Category Switcher -->
+        <div class="skills-filter-switch-wrapper">
+          <button class="skills-tab-pill active" data-skill-tab="all" id="tab-all-skills" onclick="switchSkillsTab('all')">
+            <i class="fas fa-layer-group"></i> All Competencies
+          </button>
+          <button class="skills-tab-pill" data-skill-tab="technical" id="tab-tech-skills" onclick="switchSkillsTab('technical')">
+            <i class="fas fa-terminal"></i> Technical Skills
+          </button>
+          <button class="skills-tab-pill" data-skill-tab="soft" id="tab-soft-skills" onclick="switchSkillsTab('soft')">
+            <i class="fas fa-brain"></i> Soft Skills
+          </button>
+        </div>
+
+        <!-- Dual Column Skills Showcase Grid -->
+        <div class="skills-dual-container" id="skills-dual-container">
+          <!-- Column 1: Technical Skills -->
+          <div class="skills-category-card" id="tech-skills-block">
+            <div class="skills-category-header">
+              <div class="cat-header-icon tech-glow-icon">
+                <i class="fas fa-code"></i>
+              </div>
+              <div class="cat-header-text">
+                <h3 class="cat-header-title">Technical Skills</h3>
+                <span class="cat-header-subtitle">Development, Data & Engineering Tools</span>
+              </div>
+              <span class="skills-count-badge tech-badge-pill" id="tech-skills-badge">0 Skills</span>
+            </div>
+            <div class="skills-chips-grid" id="tech-skills-grid">
+              <!-- Dynamically hydrated by script.js -->
+            </div>
+          </div>
+
+          <!-- Column 2: Soft Skills -->
+          <div class="skills-category-card" id="soft-skills-block">
+            <div class="skills-category-header">
+              <div class="cat-header-icon soft-glow-icon">
+                <i class="fas fa-brain"></i>
+              </div>
+              <div class="cat-header-text">
+                <h3 class="cat-header-title">Soft Skills</h3>
+                <span class="cat-header-subtitle">Leadership, Communication & Management</span>
+              </div>
+              <span class="skills-count-badge soft-badge-pill" id="soft-skills-badge">0 Skills</span>
+            </div>
+            <div class="skills-chips-grid" id="soft-skills-grid">
+              <!-- Dynamically hydrated by script.js -->
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Infinite Skills Marquee -->
-      <div class="marquee-track" id="skills-marquee-track">
-        <div class="marquee-item"><i class="fab fa-js-square"></i> JAVASCRIPT ES6+</div>
-        <div class="marquee-item"><i class="fas fa-cube"></i> THREE.JS / WEBGL</div>
-        <div class="marquee-item"><i class="fas fa-wand-magic-sparkles"></i> GSAP ANIMATIONS</div>
-        <div class="marquee-item"><i class="fab fa-node-js"></i> NODE.JS & EXPRESS</div>
-        <div class="marquee-item"><i class="fab fa-react"></i> REACT & NEXT.JS</div>
-        <div class="marquee-item"><i class="fas fa-database"></i> SQLITE & MONGODB</div>
-        <div class="marquee-item"><i class="fab fa-python"></i> PYTHON / AI APIS</div>
-        <div class="marquee-item"><i class="fab fa-docker"></i> DOCKER & CLOUD</div>
-        <div class="marquee-item"><i class="fab fa-figma"></i> BESPOKE UI/UX</div>
-        <!-- Duplicate for continuous loop -->
-        <div class="marquee-item"><i class="fab fa-js-square"></i> JAVASCRIPT ES6+</div>
-        <div class="marquee-item"><i class="fas fa-cube"></i> THREE.JS / WEBGL</div>
-        <div class="marquee-item"><i class="fas fa-wand-magic-sparkles"></i> GSAP ANIMATIONS</div>
-        <div class="marquee-item"><i class="fab fa-node-js"></i> NODE.JS & EXPRESS</div>
-        <div class="marquee-item"><i class="fab fa-react"></i> REACT & NEXT.JS</div>
-        <div class="marquee-item"><i class="fas fa-database"></i> SQLITE & MONGODB</div>
-        <div class="marquee-item"><i class="fab fa-python"></i> PYTHON / AI APIS</div>
-        <div class="marquee-item"><i class="fab fa-docker"></i> DOCKER & CLOUD</div>
-        <div class="marquee-item"><i class="fab fa-figma"></i> BESPOKE UI/UX</div>
+      <!-- Ambient Infinite Skills Marquee Ticker -->
+      <div class="marquee-wrapper">
+        <div class="marquee-track" id="skills-marquee-track">
+          <!-- Continuous ticker loop -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 3b. Work Experience Section (#experience) -->
+    <section id="experience" class="experience-section">
+      <div class="container">
+        <!-- Section Header matching the screenshot -->
+        <div class="exp-section-header">
+          <div class="exp-header-text">
+            <h2 class="exp-main-title">WORK EXPERIENCE</h2>
+            <div class="exp-subtitle-tag">PROFESSIONAL ROLES, INTERNSHIPS & JOURNEY</div>
+          </div>
+          <!-- Pagination Control matching < 01 / 03 > in screenshot -->
+          <div class="exp-nav-pill">
+            <button class="exp-arrow-btn" id="exp-prev-btn" aria-label="Previous Experience" onclick="slideExperience(-1)">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <span class="exp-counter">
+              <span id="exp-current-num">01</span> / <span id="exp-total-num">03</span>
+            </span>
+            <button class="exp-arrow-btn" id="exp-next-btn" aria-label="Next Experience" onclick="slideExperience(1)">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Slider Viewport and Track -->
+        <div class="exp-slider-viewport">
+          <div class="exp-cards-track" id="experience-cards-track">
+            <!-- Dynamically populated by script.js -->
+          </div>
+        </div>
+
+        <!-- Pagination Indicator Dots matching screenshot -->
+        <div class="exp-slider-dots" id="experience-dots-container">
+          <!-- Dynamically populated by script.js -->
+        </div>
       </div>
     </section>
 
@@ -435,6 +514,24 @@
       </button>
       <h3 id="cert-modal-title" class="modal-title" style="margin-bottom: 1rem;">Certificate View</h3>
       <img id="cert-modal-img" src="" alt="Certificate Preview" class="cert-modal-img">
+    </div>
+  </div>
+
+  <!-- MODAL: Luxury Theme Palette Picker -->
+  <div id="theme-modal" class="modal-backdrop">
+    <div class="modal-box theme-modal-box">
+      <button id="close-theme-modal-btn" class="modal-close-btn" aria-label="Close Modal">
+        <i class="fas fa-times"></i>
+      </button>
+      <h3 class="modal-title" style="margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.6rem;">
+        <i class="fas fa-palette" style="color: var(--accent-primary);"></i> Choose Visual Palette
+      </h3>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+        Select from 12 luxury dark atmospheric palettes. Both Skills and Work Experience sections adapt seamlessly in real time.
+      </p>
+      <div id="frontend-themes-grid" class="theme-grid-palette">
+        <!-- Hydrated dynamically by script.js -->
+      </div>
     </div>
   </div>
 

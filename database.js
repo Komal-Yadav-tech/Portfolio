@@ -168,7 +168,25 @@ async function initDatabase() {
         institution TEXT NOT NULL,
         pass_year TEXT NOT NULL,
         grade_or_details TEXT,
-        sort_order INTEGER DEFAULT 0
+        percentage TEXT DEFAULT '',
+        is_ongoing INTEGER DEFAULT 0,
+        sort_order INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 5b. Work Experience & Career Journey
+    db.run(`
+      CREATE TABLE IF NOT EXISTS experience (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        role_title TEXT NOT NULL,
+        company TEXT NOT NULL,
+        badge TEXT DEFAULT "EXPERIENCE",
+        duration_location TEXT NOT NULL,
+        description TEXT,
+        tags TEXT,
+        sort_order INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -215,9 +233,13 @@ async function initDatabase() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         icon TEXT DEFAULT "fa-cube",
+        category TEXT DEFAULT "technical",
         sort_order INTEGER DEFAULT 0
       )
     `);
+
+    // Ensure category column exists in existing database
+    db.run(`ALTER TABLE skills ADD COLUMN category TEXT DEFAULT 'technical'`, () => {});
 
     // 9. Global Theme Settings
     db.run(`
@@ -232,6 +254,11 @@ async function initDatabase() {
 
     // Ensure hero_bg_color column exists in existing database
     db.run(`ALTER TABLE theme_settings ADD COLUMN hero_bg_color TEXT DEFAULT "#0b1a1c"`, () => {});
+
+    // Ensure education columns exist in existing database
+    db.run(`ALTER TABLE education ADD COLUMN percentage TEXT DEFAULT ''`, () => {});
+    db.run(`ALTER TABLE education ADD COLUMN is_ongoing INTEGER DEFAULT 0`, () => {});
+    db.run(`ALTER TABLE education ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`, () => {});
 
     // Seed and sync admin credentials
     try {
@@ -449,6 +476,12 @@ async function initDatabase() {
           );
         }
         console.log('🌱 Seeded default education');
+      } else {
+        try {
+          await runQuery(`UPDATE education SET is_ongoing = 1, pass_year = '2024 - 2027', degree = 'Bachelor of Computer Applications', institution = 'CSJM University, Kanpur' WHERE id = 1`);
+          await runQuery(`UPDATE education SET percentage = '76%', grade_or_details = '76%', degree = 'Intermediate', institution = 'CBSE Board', pass_year = '2023 - 2024' WHERE id = 2`);
+          await runQuery(`UPDATE education SET percentage = '81%', grade_or_details = '81%', degree = 'High School', institution = 'CBSE Board', pass_year = '2021 - 2022' WHERE id = 3`);
+        } catch (e) {}
       }
 
       const certsCount = await getQuery('SELECT COUNT(*) as count FROM certifications');
@@ -557,24 +590,68 @@ async function initDatabase() {
       const skillsCount = await getQuery('SELECT COUNT(*) as count FROM skills');
       if (skillsCount.count === 0) {
         const defaultSkills = [
-          { name: 'JAVASCRIPT ES6+', icon: 'fab fa-js-square', sort_order: 1 },
-          { name: 'THREE.JS / WEBGL', icon: 'fas fa-cube', sort_order: 2 },
-          { name: 'GSAP ANIMATIONS', icon: 'fas fa-wand-magic-sparkles', sort_order: 3 },
-          { name: 'NODE.JS & EXPRESS', icon: 'fab fa-node-js', sort_order: 4 },
-          { name: 'REACT & NEXT.JS', icon: 'fab fa-react', sort_order: 5 },
-          { name: 'SQLITE & MONGODB', icon: 'fas fa-database', sort_order: 6 },
-          { name: 'PYTHON / AI APIS', icon: 'fab fa-python', sort_order: 7 },
-          { name: 'DOCKER & CLOUD', icon: 'fab fa-docker', sort_order: 8 },
-          { name: 'BESPOKE UI/UX', icon: 'fab fa-figma', sort_order: 9 }
+          // Technical Skills
+          { name: 'PYTHON', icon: 'fab fa-python', category: 'technical', sort_order: 1 },
+          { name: 'AI – ASSISTED DEVELOPMENT (VIBE CODING)', icon: 'fas fa-wand-magic-sparkles', category: 'technical', sort_order: 2 },
+          { name: 'GIT/GITHUB', icon: 'fab fa-github', category: 'technical', sort_order: 3 },
+          { name: 'POWER BI', icon: 'fas fa-chart-pie', category: 'technical', sort_order: 4 },
+          { name: 'HTML/CSS/JAVASCRIPT', icon: 'fab fa-code', category: 'technical', sort_order: 5 },
+          // Soft Skills
+          { name: 'COMMUNICATION', icon: 'fas fa-comments', category: 'soft', sort_order: 6 },
+          { name: 'TEAMWORK', icon: 'fas fa-people-group', category: 'soft', sort_order: 7 },
+          { name: 'LEADERSHIP', icon: 'fas fa-crown', category: 'soft', sort_order: 8 },
+          { name: 'TIME MANAGEMENT', icon: 'fas fa-clock', category: 'soft', sort_order: 9 },
+          { name: 'QUICK LEARNING', icon: 'fas fa-bolt', category: 'soft', sort_order: 10 }
         ];
 
         for (const sk of defaultSkills) {
           await runQuery(
-            'INSERT INTO skills (name, icon, sort_order) VALUES (?, ?, ?)',
-            [sk.name, sk.icon, sk.sort_order]
+            'INSERT INTO skills (name, icon, category, sort_order) VALUES (?, ?, ?, ?)',
+            [sk.name, sk.icon, sk.category, sk.sort_order]
           );
         }
-        console.log('🌱 Seeded default skills');
+        console.log('🌱 Seeded default technical & soft skills');
+      }
+
+      const expCount = await getQuery('SELECT COUNT(*) as count FROM experience');
+      if (expCount.count === 0) {
+        const defaultExperience = [
+          {
+            badge: 'MASTER CLASS',
+            role_title: 'Cybersecurity Analyst Intern',
+            company: 'WSCUBE Tech / Tech Training',
+            duration_location: '2024 • online',
+            description: 'Learn fundaments of Networking and Cyber security.',
+            tags: 'Networking Fundaments, TCP/IP models, Cybersecurity Fundamentals',
+            sort_order: 1
+          },
+          {
+            badge: 'LEADERSHIP',
+            role_title: 'Technical & Development Lead',
+            company: 'Academic & Hackathon Projects',
+            duration_location: '2023 - Present • Kanpur, UP',
+            description: 'Led end-to-end full-stack development and UI architecture for Khojbeen.ai Lost & Found platform and modern responsive portfolio systems.',
+            tags: 'JavaScript, Node.js, Express, MongoDB, HTML5/CSS3, Git',
+            sort_order: 2
+          },
+          {
+            badge: 'HACKATHON',
+            role_title: 'AI Hackathon Team Member & Lead',
+            company: 'Hack India & CSJMU Fests',
+            duration_location: '2024 - 2026 • Kanpur, UP',
+            description: 'Participated in 3+ Hackathons as a Team Member and Leader, attending International Conferences on AI and building real-world software solutions.',
+            tags: 'Python, AI Development, Team Leadership, Vibe Coding',
+            sort_order: 3
+          }
+        ];
+
+        for (const e of defaultExperience) {
+          await runQuery(
+            'INSERT INTO experience (role_title, company, badge, duration_location, description, tags, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [e.role_title, e.company, e.badge, e.duration_location, e.description, e.tags, e.sort_order]
+          );
+        }
+        console.log('🌱 Seeded default work experience records');
       }
     } catch (e) {
       console.error('Error seeding data:', e);

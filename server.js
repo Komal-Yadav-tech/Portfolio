@@ -478,9 +478,36 @@ app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
    EDUCATION API
    ========================================================================== */
 
+function formatEducationRow(r) {
+  if (!r) return null;
+  const year = r.pass_year || r.year || '';
+  const title = r.degree || r.title || '';
+  const institute = r.institution || r.institute || '';
+  const percentage = r.percentage || (r.grade_or_details && !/progress/i.test(r.grade_or_details) ? r.grade_or_details : '');
+  const isOngoing = Boolean(r.is_ongoing === 1 || r.is_ongoing === true || /ongoing/i.test(year));
+  return {
+    id: r.id,
+    year,
+    pass_year: year,
+    title,
+    degree: title,
+    institute,
+    institution: institute,
+    percentage,
+    grade_or_details: isOngoing ? 'In Progress' : (percentage || r.grade_or_details || ''),
+    isOngoing,
+    is_ongoing: isOngoing ? 1 : 0,
+    sortOrder: r.sort_order ?? 0,
+    sort_order: r.sort_order ?? 0,
+    createdAt: r.created_at || new Date().toISOString(),
+    created_at: r.created_at || new Date().toISOString()
+  };
+}
+
 app.get('/api/education', async (req, res) => {
   try {
-    const education = await allQuery('SELECT * FROM education ORDER BY sort_order ASC, id ASC');
+    const rows = await allQuery('SELECT * FROM education ORDER BY sort_order ASC, id ASC');
+    const education = rows.map(formatEducationRow);
     res.json({ success: true, data: education });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -489,16 +516,38 @@ app.get('/api/education', async (req, res) => {
 
 app.post('/api/education', authenticateToken, async (req, res) => {
   try {
-    const { degree, institution, pass_year, grade_or_details, sort_order } = req.body;
-    if (!degree || !institution || !pass_year) {
-      return res.status(400).json({ success: false, message: 'Degree, institution, and year are required' });
+    const title = (req.body.title || req.body.degree || '').trim();
+    const institute = (req.body.institute || req.body.institution || '').trim();
+    const year = (req.body.year || req.body.pass_year || '').trim();
+    let percentage = (req.body.percentage !== undefined ? req.body.percentage : (req.body.grade_or_details || '')).toString().trim();
+    const isOngoing = Boolean(req.body.isOngoing === true || req.body.isOngoing === 'true' || req.body.is_ongoing === 1 || req.body.is_ongoing === '1');
+    let sortOrder = parseInt(req.body.sortOrder ?? req.body.sort_order);
+
+    if (!title || !institute || !year) {
+      return res.status(400).json({ success: false, message: 'Degree/Title, Institute/Board, and Year are required' });
     }
+
+    if (percentage) {
+      const numVal = parseFloat(percentage.replace('%', '').trim());
+      if (isNaN(numVal) || numVal < 0 || numVal > 100) {
+        return res.status(400).json({ success: false, message: 'Percentage must be between 0 and 100' });
+      }
+      if (!percentage.includes('%') && !isNaN(numVal)) {
+        percentage = `${numVal}%`;
+      }
+    }
+
+    if (isNaN(sortOrder)) {
+      const maxOrderRow = await getQuery('SELECT MAX(sort_order) as maxOrder FROM education');
+      sortOrder = ((maxOrderRow && maxOrderRow.maxOrder) ? maxOrderRow.maxOrder : 0) + 1;
+    }
+
     const result = await runQuery(
-      'INSERT INTO education (degree, institution, pass_year, grade_or_details, sort_order) VALUES (?, ?, ?, ?, ?)',
-      [degree, institution, pass_year, grade_or_details || '', sort_order || 0]
+      'INSERT INTO education (degree, institution, pass_year, grade_or_details, percentage, is_ongoing, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [title, institute, year, isOngoing ? 'In Progress' : percentage, percentage, isOngoing ? 1 : 0, sortOrder]
     );
     const created = await getQuery('SELECT * FROM education WHERE id = ?', [result.lastID]);
-    res.json({ success: true, message: 'Education record added', data: created });
+    res.status(201).json({ success: true, message: 'Academic qualification added successfully', data: formatEducationRow(created) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -507,13 +556,42 @@ app.post('/api/education', authenticateToken, async (req, res) => {
 app.put('/api/education/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { degree, institution, pass_year, grade_or_details, sort_order } = req.body;
+    const existing = await getQuery('SELECT * FROM education WHERE id = ?', [id]);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Academic qualification not found' });
+    }
+
+    const title = (req.body.title || req.body.degree || '').trim();
+    const institute = (req.body.institute || req.body.institution || '').trim();
+    const year = (req.body.year || req.body.pass_year || '').trim();
+    let percentage = (req.body.percentage !== undefined ? req.body.percentage : (req.body.grade_or_details || '')).toString().trim();
+    const isOngoing = Boolean(req.body.isOngoing === true || req.body.isOngoing === 'true' || req.body.is_ongoing === 1 || req.body.is_ongoing === '1');
+    let sortOrder = parseInt(req.body.sortOrder ?? req.body.sort_order);
+
+    if (!title || !institute || !year) {
+      return res.status(400).json({ success: false, message: 'Degree/Title, Institute/Board, and Year are required' });
+    }
+
+    if (percentage) {
+      const numVal = parseFloat(percentage.replace('%', '').trim());
+      if (isNaN(numVal) || numVal < 0 || numVal > 100) {
+        return res.status(400).json({ success: false, message: 'Percentage must be between 0 and 100' });
+      }
+      if (!percentage.includes('%') && !isNaN(numVal)) {
+        percentage = `${numVal}%`;
+      }
+    }
+
+    if (isNaN(sortOrder)) {
+      sortOrder = existing.sort_order;
+    }
+
     await runQuery(
-      'UPDATE education SET degree = ?, institution = ?, pass_year = ?, grade_or_details = ?, sort_order = ? WHERE id = ?',
-      [degree, institution, pass_year, grade_or_details, sort_order, id]
+      'UPDATE education SET degree = ?, institution = ?, pass_year = ?, grade_or_details = ?, percentage = ?, is_ongoing = ?, sort_order = ? WHERE id = ?',
+      [title, institute, year, isOngoing ? 'In Progress' : percentage, percentage, isOngoing ? 1 : 0, sortOrder, id]
     );
     const updated = await getQuery('SELECT * FROM education WHERE id = ?', [id]);
-    res.json({ success: true, message: 'Education updated', data: updated });
+    res.json({ success: true, message: 'Academic qualification updated successfully', data: formatEducationRow(updated) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -521,8 +599,107 @@ app.put('/api/education/:id', authenticateToken, async (req, res) => {
 
 app.delete('/api/education/:id', authenticateToken, async (req, res) => {
   try {
-    await runQuery('DELETE FROM education WHERE id = ?', [req.params.id]);
-    res.json({ success: true, message: 'Education record deleted' });
+    const { id } = req.params;
+    const existing = await getQuery('SELECT * FROM education WHERE id = ?', [id]);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Academic qualification not found' });
+    }
+    await runQuery('DELETE FROM education WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Academic qualification deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/* ==========================================================================
+   WORK EXPERIENCE API
+   ========================================================================== */
+
+app.get('/api/experience', async (req, res) => {
+  try {
+    const list = await allQuery('SELECT * FROM experience ORDER BY sort_order ASC, id ASC');
+    res.json({ success: true, data: list });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/api/experience', authenticateToken, async (req, res) => {
+  try {
+    const { role_title, roleTitle, role, company, org, badge, duration_location, durationLocation, description, desc, tags, techStackTags, skills_tags, sort_order, sortOrder } = req.body;
+    const finalRole = role_title || roleTitle || role;
+    const finalCompany = company || org;
+    if (!finalRole || !finalCompany) {
+      return res.status(400).json({ success: false, message: 'Role title and company are required' });
+    }
+    const rawTags = tags !== undefined ? tags : (techStackTags !== undefined ? techStackTags : (skills_tags !== undefined ? skills_tags : ''));
+    const finalTags = Array.isArray(rawTags) ? rawTags.join(', ') : String(rawTags);
+    const finalSort = sort_order !== undefined ? sort_order : (sortOrder !== undefined ? sortOrder : 0);
+
+    const result = await runQuery(
+      'INSERT INTO experience (role_title, company, badge, duration_location, description, tags, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [
+        finalRole,
+        finalCompany,
+        badge || 'EXPERIENCE',
+        duration_location || durationLocation || '',
+        description || desc || '',
+        finalTags,
+        finalSort
+      ]
+    );
+    const created = await getQuery('SELECT * FROM experience WHERE id = ?', [result.lastID]);
+    res.json({ success: true, message: 'Experience record added', data: created });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.put('/api/experience/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role_title, roleTitle, role, company, org, badge, duration_location, durationLocation, description, desc, tags, techStackTags, skills_tags, sort_order, sortOrder } = req.body;
+    const existing = await getQuery('SELECT * FROM experience WHERE id = ?', [id]);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Experience record not found' });
+    }
+    const finalRole = role_title !== undefined ? role_title : (roleTitle !== undefined ? roleTitle : (role !== undefined ? role : existing.role_title));
+    const finalCompany = company !== undefined ? company : (org !== undefined ? org : existing.company);
+    const finalBadge = badge !== undefined ? badge : existing.badge;
+    const finalDuration = duration_location !== undefined ? duration_location : (durationLocation !== undefined ? durationLocation : existing.duration_location);
+    const finalDesc = description !== undefined ? description : (desc !== undefined ? desc : existing.description);
+    
+    let finalTags = existing.tags;
+    if (tags !== undefined) finalTags = Array.isArray(tags) ? tags.join(', ') : tags;
+    else if (techStackTags !== undefined) finalTags = Array.isArray(techStackTags) ? techStackTags.join(', ') : techStackTags;
+    else if (skills_tags !== undefined) finalTags = Array.isArray(skills_tags) ? skills_tags.join(', ') : skills_tags;
+
+    const finalSort = sort_order !== undefined ? sort_order : (sortOrder !== undefined ? sortOrder : existing.sort_order);
+
+    await runQuery(
+      'UPDATE experience SET role_title = ?, company = ?, badge = ?, duration_location = ?, description = ?, tags = ?, sort_order = ? WHERE id = ?',
+      [
+        finalRole,
+        finalCompany,
+        finalBadge,
+        finalDuration,
+        finalDesc,
+        finalTags,
+        finalSort,
+        id
+      ]
+    );
+    const updated = await getQuery('SELECT * FROM experience WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Experience updated successfully', data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.delete('/api/experience/:id', authenticateToken, async (req, res) => {
+  try {
+    await runQuery('DELETE FROM experience WHERE id = ?', [req.params.id]);
+    res.json({ success: true, message: 'Experience record deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -808,13 +985,13 @@ app.get('/api/skills', async (req, res) => {
 
 app.post('/api/skills', authenticateToken, async (req, res) => {
   try {
-    const { name, icon, sort_order } = req.body;
+    const { name, icon, category, sort_order } = req.body;
     if (!name) {
       return res.status(400).json({ success: false, message: 'Skill name is required' });
     }
     const result = await runQuery(
-      'INSERT INTO skills (name, icon, sort_order) VALUES (?, ?, ?)',
-      [name.toUpperCase(), icon || 'fa-cube', sort_order || 0]
+      'INSERT INTO skills (name, icon, category, sort_order) VALUES (?, ?, ?, ?)',
+      [name.toUpperCase(), icon || 'fa-cube', category || 'technical', sort_order || 0]
     );
     const created = await getQuery('SELECT * FROM skills WHERE id = ?', [result.lastID]);
     res.json({ success: true, message: 'Skill created successfully', data: created });
@@ -826,10 +1003,10 @@ app.post('/api/skills', authenticateToken, async (req, res) => {
 app.put('/api/skills/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, icon, sort_order } = req.body;
+    const { name, icon, category, sort_order } = req.body;
     await runQuery(
-      'UPDATE skills SET name = ?, icon = ?, sort_order = ? WHERE id = ?',
-      [name ? name.toUpperCase() : '', icon || 'fa-cube', sort_order || 0, id]
+      'UPDATE skills SET name = ?, icon = ?, category = ?, sort_order = ? WHERE id = ?',
+      [name ? name.toUpperCase() : '', icon || 'fa-cube', category || 'technical', sort_order || 0, id]
     );
     const updated = await getQuery('SELECT * FROM skills WHERE id = ?', [id]);
     res.json({ success: true, message: 'Skill updated successfully', data: updated });
