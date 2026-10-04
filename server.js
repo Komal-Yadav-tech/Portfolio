@@ -808,13 +808,13 @@ app.get('/api/skills', async (req, res) => {
 
 app.post('/api/skills', authenticateToken, async (req, res) => {
   try {
-    const { name, icon, sort_order } = req.body;
+    const { name, icon, category, sort_order } = req.body;
     if (!name) {
       return res.status(400).json({ success: false, message: 'Skill name is required' });
     }
     const result = await runQuery(
-      'INSERT INTO skills (name, icon, sort_order) VALUES (?, ?, ?)',
-      [name.toUpperCase(), icon || 'fa-cube', sort_order || 0]
+      'INSERT INTO skills (name, icon, category, sort_order) VALUES (?, ?, ?, ?)',
+      [name.toUpperCase(), icon || 'fa-cube', category || 'technical', sort_order || 0]
     );
     const created = await getQuery('SELECT * FROM skills WHERE id = ?', [result.lastID]);
     res.json({ success: true, message: 'Skill created successfully', data: created });
@@ -826,10 +826,10 @@ app.post('/api/skills', authenticateToken, async (req, res) => {
 app.put('/api/skills/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, icon, sort_order } = req.body;
+    const { name, icon, category, sort_order } = req.body;
     await runQuery(
-      'UPDATE skills SET name = ?, icon = ?, sort_order = ? WHERE id = ?',
-      [name ? name.toUpperCase() : '', icon || 'fa-cube', sort_order || 0, id]
+      'UPDATE skills SET name = ?, icon = ?, category = ?, sort_order = ? WHERE id = ?',
+      [name ? name.toUpperCase() : '', icon || 'fa-cube', category || 'technical', sort_order || 0, id]
     );
     const updated = await getQuery('SELECT * FROM skills WHERE id = ?', [id]);
     res.json({ success: true, message: 'Skill updated successfully', data: updated });
@@ -842,6 +842,82 @@ app.delete('/api/skills/:id', authenticateToken, async (req, res) => {
   try {
     await runQuery('DELETE FROM skills WHERE id = ?', [req.params.id]);
     res.json({ success: true, message: 'Skill deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/* ==========================================================================
+   EXPERIENCE ROUTES
+   ========================================================================== */
+
+app.get('/api/experience', async (req, res) => {
+  try {
+    const list = await allQuery('SELECT * FROM experience ORDER BY sort_order ASC, id ASC');
+    res.json({ success: true, data: list });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/api/experience', authenticateToken, async (req, res) => {
+  try {
+    const { role_title, company, badge, duration_location, description, tags, sort_order } = req.body;
+    if (!role_title || !company) {
+      return res.status(400).json({ success: false, message: 'Role title and company are required' });
+    }
+    const result = await runQuery(
+      `INSERT INTO experience (role_title, company, badge, duration_location, description, tags, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [role_title, company, badge || 'EXPERIENCE', duration_location || '', description || '', tags || '', sort_order || 0]
+    );
+    const created = await getQuery('SELECT * FROM experience WHERE id = ?', [result.lastID]);
+    res.json({ success: true, message: 'Experience added successfully', data: created });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.put('/api/experience/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role_title, company, badge, duration_location, description, tags, sort_order } = req.body;
+    const existing = await getQuery('SELECT * FROM experience WHERE id = ?', [id]);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Experience not found' });
+    }
+    await runQuery(
+      `UPDATE experience SET
+        role_title = ?,
+        company = ?,
+        badge = ?,
+        duration_location = ?,
+        description = ?,
+        tags = ?,
+        sort_order = ?
+       WHERE id = ?`,
+      [
+        role_title || existing.role_title,
+        company || existing.company,
+        badge !== undefined ? badge : existing.badge,
+        duration_location !== undefined ? duration_location : existing.duration_location,
+        description !== undefined ? description : existing.description,
+        tags !== undefined ? tags : existing.tags,
+        sort_order !== undefined ? sort_order : existing.sort_order,
+        id
+      ]
+    );
+    const updated = await getQuery('SELECT * FROM experience WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Experience updated successfully', data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.delete('/api/experience/:id', authenticateToken, async (req, res) => {
+  try {
+    await runQuery('DELETE FROM experience WHERE id = ?', [req.params.id]);
+    res.json({ success: true, message: 'Experience deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

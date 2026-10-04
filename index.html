@@ -71,12 +71,13 @@
           <span class="brand-name-text">KOMAL</span><span class="dot">.</span>
         </a>
 
-        <!-- 6 Navbar Links: Home, About, Skills, Projects, Certifications, Contact -->
+        <!-- Navbar Links: Home, About, Skills, Experience, Projects, Certifications, Contact -->
         <nav>
           <ul class="nav-menu">
             <li><a href="#home" class="nav-link active">Home</a></li>
             <li><a href="#about" class="nav-link">About</a></li>
             <li><a href="#skills" class="nav-link">Skills</a></li>
+            <li><a href="#experience" class="nav-link">Experience</a></li>
             <li><a href="#projects" class="nav-link">Projects</a></li>
             <li><a href="#certifications" class="nav-link">Certifications</a></li>
             <li><a href="#contact" class="nav-link">Contact</a></li>
@@ -105,6 +106,7 @@
         <li><a href="#home" class="nav-link">Home</a></li>
         <li><a href="#about" class="nav-link">About</a></li>
         <li><a href="#skills" class="nav-link">Skills</a></li>
+        <li><a href="#experience" class="nav-link">Experience</a></li>
         <li><a href="#projects" class="nav-link">Projects</a></li>
         <li><a href="#certifications" class="nav-link">Certifications</a></li>
         <li><a href="#contact" class="nav-link">Contact</a></li>
@@ -238,36 +240,110 @@
     </section>
 
     <!-- 3. Skills & Core Proficiencies Section (#skills) -->
-    <section id="skills" class="skills-section marquee-section">
+    <section id="skills" class="skills-section">
       <div class="container" style="margin-bottom: 2.5rem;">
         <div class="section-header">
-          <span id="skills-tag" class="section-tag">[ TECHNICAL PROFICIENCIES ]</span>
-          <h2 id="skills-title" class="section-title">Core Technologies & <span>Masteries</span></h2>
-          <p id="skills-desc" class="section-desc">Extensive toolkit covering frontend aesthetics, 3D WebGL computation, and robust backend engineering.</p>
+          <span id="skills-tag" class="section-tag">[ TECHNICAL & SOFT PROFICIENCIES ]</span>
+          <h2 id="skills-title" class="section-title">Core Competencies & <span>Skillsets</span></h2>
+          <p id="skills-desc" class="section-desc">Dual-spectrum proficiencies covering cutting-edge software engineering, data analytics, and essential interpersonal leadership.</p>
+        </div>
+
+        <!-- Interactive Skills Category Switcher -->
+        <div class="skills-filter-switch-wrapper">
+          <button class="skills-tab-pill active" data-skill-tab="all" id="tab-all-skills" onclick="switchSkillsTab('all')">
+            <i class="fas fa-layer-group"></i> All Competencies
+          </button>
+          <button class="skills-tab-pill" data-skill-tab="technical" id="tab-tech-skills" onclick="switchSkillsTab('technical')">
+            <i class="fas fa-terminal"></i> Technical Skills
+          </button>
+          <button class="skills-tab-pill" data-skill-tab="soft" id="tab-soft-skills" onclick="switchSkillsTab('soft')">
+            <i class="fas fa-brain"></i> Soft Skills
+          </button>
+        </div>
+
+        <!-- Dual Column Skills Showcase Grid -->
+        <div class="skills-dual-container" id="skills-dual-container">
+          <!-- Column 1: Technical Skills -->
+          <div class="skills-category-card" id="tech-skills-block">
+            <div class="skills-category-header">
+              <div class="cat-header-icon tech-glow-icon">
+                <i class="fas fa-code"></i>
+              </div>
+              <div class="cat-header-text">
+                <h3 class="cat-header-title">Technical Skills</h3>
+                <span class="cat-header-subtitle">Development, Data & Engineering Tools</span>
+              </div>
+              <span class="skills-count-badge tech-badge-pill" id="tech-skills-badge">0 Skills</span>
+            </div>
+            <div class="skills-chips-grid" id="tech-skills-grid">
+              <!-- Dynamically hydrated by script.js -->
+            </div>
+          </div>
+
+          <!-- Column 2: Soft Skills -->
+          <div class="skills-category-card" id="soft-skills-block">
+            <div class="skills-category-header">
+              <div class="cat-header-icon soft-glow-icon">
+                <i class="fas fa-brain"></i>
+              </div>
+              <div class="cat-header-text">
+                <h3 class="cat-header-title">Soft Skills</h3>
+                <span class="cat-header-subtitle">Leadership, Communication & Management</span>
+              </div>
+              <span class="skills-count-badge soft-badge-pill" id="soft-skills-badge">0 Skills</span>
+            </div>
+            <div class="skills-chips-grid" id="soft-skills-grid">
+              <!-- Dynamically hydrated by script.js -->
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Infinite Skills Marquee -->
-      <div class="marquee-track" id="skills-marquee-track">
-        <div class="marquee-item"><i class="fab fa-js-square"></i> JAVASCRIPT ES6+</div>
-        <div class="marquee-item"><i class="fas fa-cube"></i> THREE.JS / WEBGL</div>
-        <div class="marquee-item"><i class="fas fa-wand-magic-sparkles"></i> GSAP ANIMATIONS</div>
-        <div class="marquee-item"><i class="fab fa-node-js"></i> NODE.JS & EXPRESS</div>
-        <div class="marquee-item"><i class="fab fa-react"></i> REACT & NEXT.JS</div>
-        <div class="marquee-item"><i class="fas fa-database"></i> SQLITE & MONGODB</div>
-        <div class="marquee-item"><i class="fab fa-python"></i> PYTHON / AI APIS</div>
-        <div class="marquee-item"><i class="fab fa-docker"></i> DOCKER & CLOUD</div>
-        <div class="marquee-item"><i class="fab fa-figma"></i> BESPOKE UI/UX</div>
-        <!-- Duplicate for continuous loop -->
-        <div class="marquee-item"><i class="fab fa-js-square"></i> JAVASCRIPT ES6+</div>
-        <div class="marquee-item"><i class="fas fa-cube"></i> THREE.JS / WEBGL</div>
-        <div class="marquee-item"><i class="fas fa-wand-magic-sparkles"></i> GSAP ANIMATIONS</div>
-        <div class="marquee-item"><i class="fab fa-node-js"></i> NODE.JS & EXPRESS</div>
-        <div class="marquee-item"><i class="fab fa-react"></i> REACT & NEXT.JS</div>
-        <div class="marquee-item"><i class="fas fa-database"></i> SQLITE & MONGODB</div>
-        <div class="marquee-item"><i class="fab fa-python"></i> PYTHON / AI APIS</div>
-        <div class="marquee-item"><i class="fab fa-docker"></i> DOCKER & CLOUD</div>
-        <div class="marquee-item"><i class="fab fa-figma"></i> BESPOKE UI/UX</div>
+      <!-- Ambient Infinite Skills Marquee Ticker -->
+      <div class="marquee-wrapper">
+        <div class="marquee-track" id="skills-marquee-track">
+          <!-- Continuous ticker loop -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 3b. Work Experience Section (#experience) -->
+    <section id="experience" class="experience-section">
+      <div class="container">
+        <div class="experience-header-row">
+          <div>
+            <span class="section-tag">[ PROFESSIONAL ROLES & JOURNEY ]</span>
+            <h2 class="section-title">Work <span>Experience</span></h2>
+            <p class="section-desc">Key roles, industry internships, and milestone engineering leadership.</p>
+          </div>
+
+          <!-- Slider Navigation & Counter -->
+          <div class="experience-nav-wrapper">
+            <div class="slider-counter-badge" id="exp-counter-badge">
+              <span id="exp-curr-idx">01</span> / <span id="exp-total-idx">03</span>
+            </div>
+            <div class="experience-nav-btns">
+              <button class="exp-nav-btn" id="exp-prev-btn" aria-label="Previous Experience" onclick="navigateExperience(-1)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button class="exp-nav-btn" id="exp-next-btn" aria-label="Next Experience" onclick="navigateExperience(1)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Experience Cards Carousel/Slider Track -->
+        <div class="experience-slider-viewport" id="experience-slider-viewport">
+          <div class="experience-cards-track" id="experience-cards-track">
+            <!-- Dynamically populated by script.js -->
+          </div>
+        </div>
+
+        <!-- Pagination Indicator Dots -->
+        <div class="experience-dots-bar" id="experience-dots-bar">
+          <!-- Dynamically populated by script.js -->
+        </div>
       </div>
     </section>
 

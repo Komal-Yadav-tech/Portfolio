@@ -135,6 +135,7 @@ function switchTab(tabId) {
     'about-vision': ['Background & Vision', 'Customize the About section tag, heading, and description paragraphs'],
     'work-process': ['3-Step Creative Workflow', 'Customize the 3-step process cards, numbers, titles, and descriptions'],
     skills: ['Skills & Technologies', 'Manage the infinite dynamic skills marquee displayed on portfolio'],
+    experience: ['Work Experience & Internships', 'Manage career milestones, internships, and hackathon leadership displayed on your portfolio'],
     projects: ['Portfolio Projects', 'Manage showcase items, media files, and live links'],
     education: ['Academic Education', 'Manage degrees, institutions, and graduation records'],
     certifications: ['Certifications & Awards', 'Manage accredited certificates and badge media'],
@@ -160,6 +161,7 @@ async function loadAllAdminData() {
   await Promise.allSettled([
     loadProfileData(),
     loadSkills(),
+    loadExperience(),
     loadProjects(),
     loadEducation(),
     loadCertifications(),
@@ -584,6 +586,7 @@ function updateCertsHeaderPreview() {
    ========================================================================== */
 
 window.skillsData = [];
+window.currentSkillFilter = 'all';
 
 async function loadSkills() {
   try {
@@ -593,28 +596,70 @@ async function loadSkills() {
     const list = result.data || [];
     window.skillsData = list;
 
+    // Update counts
     const countEl = document.getElementById('count-skills');
     if (countEl) countEl.textContent = list.length;
+    const allEl = document.getElementById('count-all-skills');
+    if (allEl) allEl.textContent = list.length;
+    const techEl = document.getElementById('count-tech-skills');
+    if (techEl) techEl.textContent = list.filter(s => (s.category || 'technical') === 'technical').length;
+    const softEl = document.getElementById('count-soft-skills');
+    if (softEl) softEl.textContent = list.filter(s => s.category === 'soft').length;
 
-    const tbody = document.getElementById('skills-table-body');
-    if (!tbody) return;
-
-    tbody.innerHTML = list.map((s) => `
-      <tr>
-        <td><i class="${s.icon || 'fas fa-cube'}" style="color: var(--admin-accent); font-size: 1.25rem;"></i></td>
-        <td><strong>${s.name}</strong></td>
-        <td>${s.sort_order}</td>
-        <td>
-          <div class="table-actions">
-            <button class="admin-btn admin-btn-outline" style="padding: 0.4rem 0.8rem;" onclick='openEditSkillById(${s.id})'><i class="fas fa-pen"></i></button>
-            <button class="admin-btn admin-btn-danger" style="padding: 0.4rem 0.8rem;" onclick="deleteSkill(${s.id})"><i class="fas fa-trash"></i></button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+    renderSkillsTable();
   } catch (err) {
     console.error('Error loading skills:', err);
   }
+}
+
+function filterSkillsTable(filter) {
+  window.currentSkillFilter = filter;
+  ['btn-filter-all', 'btn-filter-tech', 'btn-filter-soft'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.classList.remove('active');
+  });
+  if (filter === 'all') document.getElementById('btn-filter-all')?.classList.add('active');
+  if (filter === 'technical') document.getElementById('btn-filter-tech')?.classList.add('active');
+  if (filter === 'soft') document.getElementById('btn-filter-soft')?.classList.add('active');
+
+  renderSkillsTable();
+}
+
+function renderSkillsTable() {
+  const tbody = document.getElementById('skills-table-body');
+  if (!tbody) return;
+
+  let list = window.skillsData || [];
+  if (window.currentSkillFilter !== 'all') {
+    list = list.filter(s => (s.category || 'technical') === window.currentSkillFilter);
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--admin-text-sub); padding: 2rem;">No skills found in this category. Click "+ Add Skill" to create one.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map((s) => {
+    const isSoft = s.category === 'soft';
+    const catBadge = isSoft
+      ? `<span class="skill-cat-badge badge-soft"><i class="fas fa-brain"></i> Soft Skill</span>`
+      : `<span class="skill-cat-badge badge-tech"><i class="fas fa-code"></i> Technical</span>`;
+
+    return `
+      <tr>
+        <td><i class="${s.icon || 'fas fa-cube'}" style="color: var(--admin-accent); font-size: 1.25rem;"></i></td>
+        <td><strong>${s.name}</strong></td>
+        <td>${catBadge}</td>
+        <td>${s.sort_order}</td>
+        <td>
+          <div class="table-actions">
+            <button class="admin-btn admin-btn-outline" style="padding: 0.4rem 0.8rem;" onclick='openEditSkillById(${s.id})' title="Edit Skill"><i class="fas fa-pen"></i></button>
+            <button class="admin-btn admin-btn-danger" style="padding: 0.4rem 0.8rem;" onclick="deleteSkill(${s.id})" title="Delete Skill"><i class="fas fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function openEditSkillById(id) {
@@ -623,25 +668,53 @@ function openEditSkillById(id) {
   openEditSkillModal(s);
 }
 
+function pickPresetIcon(inputTargetId, iconClass) {
+  const el = document.getElementById(inputTargetId);
+  if (el) el.value = iconClass;
+}
+
 function openAddSkillModal() {
+  const defaultCategory = window.currentSkillFilter !== 'all' ? window.currentSkillFilter : 'technical';
   openCrudModal(`
-    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-plus"></i> Add Skill / Technology</h3>
+    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-plus"></i> Add Skill / Competency</h3>
     <form id="add-skill-form">
-      <div class="form-group">
-        <label class="form-label">Skill Name *</label>
-        <input type="text" id="sk-name" class="form-control" placeholder="e.g. REACT & NEXT.JS" required>
+      <div class="form-row">
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Skill Category *</label>
+          <select id="sk-category" class="form-control" required>
+            <option value="technical" ${defaultCategory === 'technical' ? 'selected' : ''}>💻 Technical Skills</option>
+            <option value="soft" ${defaultCategory === 'soft' ? 'selected' : ''}>🧠 Soft Skills</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Skill Name *</label>
+          <input type="text" id="sk-name" class="form-control" placeholder="e.g. PYTHON or COMMUNICATION" required>
+        </div>
       </div>
       <div class="form-row">
-        <div class="form-group">
+        <div class="form-group" style="flex: 2;">
           <label class="form-label">FontAwesome Icon Class</label>
-          <input type="text" id="sk-icon" class="form-control" placeholder="fab fa-react" value="fas fa-cube">
+          <input type="text" id="sk-icon" class="form-control" placeholder="fab fa-python" value="fas fa-cube">
+          <div class="icon-preset-picker">
+            <span style="font-size: 0.75rem; color: var(--admin-text-sub); width: 100%;">Popular Icon Presets (Click to choose):</span>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fab fa-python')"><i class="fab fa-python"></i> Python</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-wand-magic-sparkles')"><i class="fas fa-wand-magic-sparkles"></i> AI/Vibe</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fab fa-github')"><i class="fab fa-github"></i> Git/GitHub</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-chart-pie')"><i class="fas fa-chart-pie"></i> Power BI</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fab fa-code')"><i class="fab fa-code"></i> HTML/JS</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-comments')"><i class="fas fa-comments"></i> Communication</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-people-group')"><i class="fas fa-people-group"></i> Teamwork</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-crown')"><i class="fas fa-crown"></i> Leadership</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-clock')"><i class="fas fa-clock"></i> Time Mgmt</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-bolt')"><i class="fas fa-bolt"></i> Learning</button>
+          </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="flex: 1;">
           <label class="form-label">Sort Order</label>
           <input type="number" id="sk-order" class="form-control" value="0">
         </div>
       </div>
-      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center;">Add Skill</button>
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Add Skill</button>
     </form>
   `);
 
@@ -649,6 +722,7 @@ function openAddSkillModal() {
     e.preventDefault();
     const body = {
       name: document.getElementById('sk-name').value.trim(),
+      category: document.getElementById('sk-category').value,
       icon: document.getElementById('sk-icon').value.trim(),
       sort_order: parseInt(document.getElementById('sk-order').value) || 0
     };
@@ -669,24 +743,47 @@ function openAddSkillModal() {
 }
 
 function openEditSkillModal(s) {
+  const currentCat = s.category || 'technical';
   openCrudModal(`
-    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-pen"></i> Edit Skill / Technology</h3>
+    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-pen"></i> Edit Skill / Competency</h3>
     <form id="edit-skill-form">
-      <div class="form-group">
-        <label class="form-label">Skill Name *</label>
-        <input type="text" id="esk-name" class="form-control" value="${s.name}" required>
+      <div class="form-row">
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Skill Category *</label>
+          <select id="esk-category" class="form-control" required>
+            <option value="technical" ${currentCat === 'technical' ? 'selected' : ''}>💻 Technical Skills</option>
+            <option value="soft" ${currentCat === 'soft' ? 'selected' : ''}>🧠 Soft Skills</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Skill Name *</label>
+          <input type="text" id="esk-name" class="form-control" value="${s.name}" required>
+        </div>
       </div>
       <div class="form-row">
-        <div class="form-group">
+        <div class="form-group" style="flex: 2;">
           <label class="form-label">FontAwesome Icon Class</label>
           <input type="text" id="esk-icon" class="form-control" value="${s.icon || 'fas fa-cube'}">
+          <div class="icon-preset-picker">
+            <span style="font-size: 0.75rem; color: var(--admin-text-sub); width: 100%;">Popular Icon Presets:</span>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fab fa-python')"><i class="fab fa-python"></i> Python</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-wand-magic-sparkles')"><i class="fas fa-wand-magic-sparkles"></i> AI/Vibe</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fab fa-github')"><i class="fab fa-github"></i> Git/GitHub</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-chart-pie')"><i class="fas fa-chart-pie"></i> Power BI</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fab fa-code')"><i class="fab fa-code"></i> HTML/JS</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-comments')"><i class="fas fa-comments"></i> Communication</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-people-group')"><i class="fas fa-people-group"></i> Teamwork</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-crown')"><i class="fas fa-crown"></i> Leadership</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-clock')"><i class="fas fa-clock"></i> Time Mgmt</button>
+            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-bolt')"><i class="fas fa-bolt"></i> Learning</button>
+          </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="flex: 1;">
           <label class="form-label">Sort Order</label>
           <input type="number" id="esk-order" class="form-control" value="${s.sort_order}">
         </div>
       </div>
-      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center;">Save Changes</button>
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Save Changes</button>
     </form>
   `);
 
@@ -694,6 +791,7 @@ function openEditSkillModal(s) {
     e.preventDefault();
     const body = {
       name: document.getElementById('esk-name').value.trim(),
+      category: document.getElementById('esk-category').value,
       icon: document.getElementById('esk-icon').value.trim(),
       sort_order: parseInt(document.getElementById('esk-order').value) || 0
     };
@@ -713,14 +811,227 @@ function openEditSkillModal(s) {
   });
 }
 
-async function deleteSkill(id) {
+function deleteSkill(id) {
   if (!confirm('Are you sure you want to delete this skill?')) return;
-  const res = await fetch(`/api/skills/${id}`, { method: 'DELETE' });
-  const result = await res.json();
-  if (result.success) {
-    showToast('Skill deleted');
-    loadSkills();
+  fetch(`/api/skills/${id}`, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(result => {
+      if (result.success) {
+        showToast('Skill deleted');
+        loadSkills();
+      }
+    });
+}
+
+/* ==========================================================================
+   WORK EXPERIENCE CRUD
+   ========================================================================== */
+
+window.experienceData = [];
+
+async function loadExperience() {
+  try {
+    const res = await fetch('/api/experience');
+    const result = await res.json();
+    if (!result.success) return;
+    const list = result.data || [];
+    window.experienceData = list;
+
+    const countEl = document.getElementById('count-experience');
+    if (countEl) countEl.textContent = list.length;
+
+    const tbody = document.getElementById('experience-table-body');
+    if (!tbody) return;
+
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--admin-text-sub); padding: 2rem;">No experience entries found. Click "+ Add Experience" to create one.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = list.map((exp) => {
+      const badgeText = (exp.badge || 'EXPERIENCE').toUpperCase();
+      let badgeStyle = 'background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);';
+      if (badgeText.includes('MASTER') || badgeText.includes('CLASS')) {
+        badgeStyle = 'background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.35);';
+      } else if (badgeText.includes('HACK')) {
+        badgeStyle = 'background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.35);';
+      }
+
+      const tagsArray = exp.tags ? exp.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+      const tagsDisplay = tagsArray.map(t => `<span style="display: inline-block; background: rgba(255,255,255,0.05); padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.72rem; margin: 0.1rem;">${t}</span>`).join(' ');
+
+      return `
+        <tr>
+          <td><span style="display: inline-block; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; ${badgeStyle}">${exp.badge || 'EXPERIENCE'}</span></td>
+          <td><strong>${exp.role_title}</strong></td>
+          <td><i class="fas fa-building-columns" style="color: var(--admin-accent); margin-right: 0.4rem;"></i> ${exp.company}</td>
+          <td><span style="font-size: 0.85rem; color: var(--admin-text-sub);">${exp.duration_location || '—'}</span></td>
+          <td style="max-width: 250px;">${tagsDisplay || '—'}</td>
+          <td>${exp.sort_order}</td>
+          <td>
+            <div class="table-actions">
+              <button class="admin-btn admin-btn-outline" style="padding: 0.4rem 0.8rem;" onclick='openEditExperienceById(${exp.id})' title="Edit Experience"><i class="fas fa-pen"></i></button>
+              <button class="admin-btn admin-btn-danger" style="padding: 0.4rem 0.8rem;" onclick="deleteExperience(${exp.id})" title="Delete Experience"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Error loading experience:', err);
   }
+}
+
+function openEditExperienceById(id) {
+  const exp = (window.experienceData || []).find(item => item.id == id);
+  if (!exp) return;
+  openEditExperienceModal(exp);
+}
+
+function openAddExperienceModal() {
+  openCrudModal(`
+    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-plus"></i> Add Work Experience</h3>
+    <form id="add-exp-form">
+      <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Role / Job Title *</label>
+          <input type="text" id="exp-role" class="form-control" placeholder="e.g. Cybersecurity Analyst Intern" required>
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Category Badge *</label>
+          <input type="text" id="exp-badge" class="form-control" placeholder="e.g. MASTER CLASS or LEADERSHIP" value="LEADERSHIP" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Company / Organization *</label>
+          <input type="text" id="exp-company" class="form-control" placeholder="e.g. WSCUBE Tech / Tech Training" required>
+        </div>
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Duration & Location</label>
+          <input type="text" id="exp-duration" class="form-control" placeholder="e.g. 2024 • Online or 2023 - Present • Kanpur, UP">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Sort Order</label>
+          <input type="number" id="exp-order" class="form-control" value="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role Description *</label>
+        <textarea id="exp-desc" class="form-control" rows="3" placeholder="Key responsibilities, learning milestones, and achievements..." required></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Key Technologies & Skills (comma-separated)</label>
+        <input type="text" id="exp-tags" class="form-control" placeholder="e.g. Networking, TCP/IP, Wireshark, Cybersecurity">
+      </div>
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Add Experience</button>
+    </form>
+  `);
+
+  document.getElementById('add-exp-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      role_title: document.getElementById('exp-role').value.trim(),
+      badge: document.getElementById('exp-badge').value.trim(),
+      company: document.getElementById('exp-company').value.trim(),
+      duration_location: document.getElementById('exp-duration').value.trim(),
+      description: document.getElementById('exp-desc').value.trim(),
+      tags: document.getElementById('exp-tags').value.trim(),
+      sort_order: parseInt(document.getElementById('exp-order').value) || 0
+    };
+    const res = await fetch('/api/experience', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Experience added successfully!');
+      closeCrudModal();
+      loadExperience();
+    } else {
+      showToast(result.message || 'Failed to add experience', 'error');
+    }
+  });
+}
+
+function openEditExperienceModal(exp) {
+  openCrudModal(`
+    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-pen"></i> Edit Work Experience</h3>
+    <form id="edit-exp-form">
+      <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Role / Job Title *</label>
+          <input type="text" id="eexp-role" class="form-control" value="${exp.role_title}" required>
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Category Badge *</label>
+          <input type="text" id="eexp-badge" class="form-control" value="${exp.badge || 'EXPERIENCE'}" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Company / Organization *</label>
+          <input type="text" id="eexp-company" class="form-control" value="${exp.company}" required>
+        </div>
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Duration & Location</label>
+          <input type="text" id="eexp-duration" class="form-control" value="${exp.duration_location || ''}">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Sort Order</label>
+          <input type="number" id="eexp-order" class="form-control" value="${exp.sort_order}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role Description *</label>
+        <textarea id="eexp-desc" class="form-control" rows="3" required>${exp.description || ''}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Key Technologies & Skills (comma-separated)</label>
+        <input type="text" id="eexp-tags" class="form-control" value="${exp.tags || ''}">
+      </div>
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Save Changes</button>
+    </form>
+  `);
+
+  document.getElementById('edit-exp-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      role_title: document.getElementById('eexp-role').value.trim(),
+      badge: document.getElementById('eexp-badge').value.trim(),
+      company: document.getElementById('eexp-company').value.trim(),
+      duration_location: document.getElementById('eexp-duration').value.trim(),
+      description: document.getElementById('eexp-desc').value.trim(),
+      tags: document.getElementById('eexp-tags').value.trim(),
+      sort_order: parseInt(document.getElementById('eexp-order').value) || 0
+    };
+    const res = await fetch(`/api/experience/${exp.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Experience updated!');
+      closeCrudModal();
+      loadExperience();
+    } else {
+      showToast(result.message || 'Failed to update experience', 'error');
+    }
+  });
+}
+
+function deleteExperience(id) {
+  if (!confirm('Are you sure you want to delete this experience record?')) return;
+  fetch(`/api/experience/${id}`, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(result => {
+      if (result.success) {
+        showToast('Experience deleted');
+        loadExperience();
+      }
+    });
 }
 
 /* ==========================================================================
