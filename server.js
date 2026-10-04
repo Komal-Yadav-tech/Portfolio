@@ -861,6 +861,11 @@ app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => 
   res.json({ success: true, url: fileUrl, filename: req.file.filename });
 });
 
+// Admin panel route
+app.get(['/admin', '/admin/'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
 // Fallback route for SPA / root
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -871,7 +876,7 @@ app.listen(PORT, () => {
   console.log(`====================================================`);
   console.log(`🚀 KOMAL Portfolio & CMS Server is active!`);
   console.log(`🌐 Portfolio Website: http://localhost:${PORT}`);
-  console.log(`🔐 Admin Panel:      http://localhost:${PORT}/admin.html`);
-  console.log(`🔑 Default Admin:    admin / admin123`);
+  console.log(`🔐 Admin Panel:      http://localhost:${PORT}/admin`);
+  console.log(`🔑 Admin Username:   komalyadav`);
   console.log(`====================================================`);
 });
