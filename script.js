@@ -160,7 +160,15 @@ function hydrateProfile(p) {
   const quoteAuthor = document.getElementById('quote-author');
   if (quoteAuthor) quoteAuthor.textContent = p.quote_author || 'Steve Jobs';
   const quoteRole = document.getElementById('quote-role');
-  if (quoteRole) quoteRole.textContent = p.quote_role || '';
+  if (quoteRole) {
+    if (p.quote_role && p.quote_role.trim()) {
+      quoteRole.textContent = p.quote_role.trim();
+      quoteRole.style.display = '';
+    } else {
+      quoteRole.textContent = '';
+      quoteRole.style.display = 'none';
+    }
+  }
 
   // Footer & Contact
   const userEmail = p.email || 'komalyadav642006@gmail.com';

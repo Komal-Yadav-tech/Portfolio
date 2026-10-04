@@ -284,9 +284,9 @@ async function initDatabase() {
             '5+',
             '1+',
             '5+',
-            'Design is not just what it looks like and feels like. Design is how it works.',
-            'Steve Jobs',
-            'Apple Co-founder & Visionary',
+            'Think like an attacker. Build like a defender.',
+            'Komal Yadav',
+            '',
             'Ready to build something unforgettable?',
             '<p>Let’s collaborate to turn visionary ideas into groundbreaking software. Available for high-impact full-stack development, creative frontend engineering, and interactive 3D web applications.</p>',
             'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'
