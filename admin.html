@@ -61,9 +61,6 @@
         <button class="nav-tab-btn" data-tab="skills">
           <i class="fas fa-microchip"></i> Skills & Tech
         </button>
-        <button class="nav-tab-btn" data-tab="experience">
-          <i class="fas fa-briefcase"></i> Work Experience
-        </button>
         <button class="nav-tab-btn" data-tab="projects">
           <i class="fas fa-layer-group"></i> Portfolio Projects
         </button>
@@ -124,10 +121,6 @@
         <div class="admin-card" style="text-align: center;">
           <div style="font-size: 2.5rem; color: #06b6d4; font-weight: 800;" id="count-skills">0</div>
           <div style="color: var(--admin-text-sub); text-transform: uppercase; font-size: 0.85rem;">Skills & Tech</div>
-        </div>
-        <div class="admin-card" style="text-align: center;">
-          <div style="font-size: 2.5rem; color: #38bdf8; font-weight: 800;" id="count-experience">0</div>
-          <div style="color: var(--admin-text-sub); text-transform: uppercase; font-size: 0.85rem;">Work Experiences</div>
         </div>
         <div class="admin-card" style="text-align: center;">
           <div style="font-size: 2.5rem; color: #10b981; font-weight: 800;" id="count-education">0</div>
@@ -463,76 +456,22 @@
       <!-- 2. Individual Skills Management -->
       <div class="admin-card">
         <div class="card-title-bar">
-          <div>
-            <h2><i class="fas fa-layer-group"></i> Manage Technical & Soft Skills</h2>
-            <p style="font-size: 0.85rem; color: var(--admin-text-sub); margin-top: 0.25rem;">
-              Organize skills into Technical and Soft Skills categories displayed in your portfolio.
-            </p>
-          </div>
+          <h2><i class="fas fa-microchip"></i> Manage Skills & Technologies (Marquee Ticker)</h2>
           <button class="admin-btn admin-btn-primary" onclick="openAddSkillModal()">
             <i class="fas fa-plus"></i> Add Skill
           </button>
         </div>
-
-        <!-- Category Filter Tabs -->
-        <div class="skills-filter-nav" style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--admin-border); padding-bottom: 0.75rem;">
-          <button class="skill-filter-btn active" id="btn-filter-all" onclick="filterSkillsTable('all')">
-            <i class="fas fa-list"></i> All Skills (<span id="count-all-skills">0</span>)
-          </button>
-          <button class="skill-filter-btn" id="btn-filter-tech" onclick="filterSkillsTable('technical')">
-            <i class="fas fa-code"></i> Technical Skills (<span id="count-tech-skills">0</span>)
-          </button>
-          <button class="skill-filter-btn" id="btn-filter-soft" onclick="filterSkillsTable('soft')">
-            <i class="fas fa-brain"></i> Soft Skills (<span id="count-soft-skills">0</span>)
-          </button>
-        </div>
-
         <div class="data-table-wrapper">
           <table class="data-table">
             <thead>
               <tr>
                 <th>Icon</th>
                 <th>Skill Name</th>
-                <th>Category</th>
                 <th>Sort Order</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="skills-table-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB: EXPERIENCE -->
-    <div id="tab-experience" class="tab-panel">
-      <div class="admin-card">
-        <div class="card-title-bar">
-          <div>
-            <h2><i class="fas fa-briefcase"></i> Work Experience & Internships</h2>
-            <p style="font-size: 0.85rem; color: var(--admin-text-sub); margin-top: 0.25rem;">
-              Manage your professional roles, internships, and hackathon milestones displayed on your portfolio.
-            </p>
-          </div>
-          <button class="admin-btn admin-btn-primary" onclick="openAddExperienceModal()">
-            <i class="fas fa-plus"></i> Add Experience
-          </button>
-        </div>
-
-        <div class="data-table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Badge</th>
-                <th>Role Title</th>
-                <th>Company / Org</th>
-                <th>Duration & Location</th>
-                <th>Tech Tags</th>
-                <th>Sort</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="experience-table-body"></tbody>
           </table>
         </div>
       </div>

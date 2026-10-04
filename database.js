@@ -215,26 +215,7 @@ async function initDatabase() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         icon TEXT DEFAULT "fa-cube",
-        category TEXT DEFAULT "technical",
         sort_order INTEGER DEFAULT 0
-      )
-    `);
-
-    // Ensure category column exists in existing database
-    db.run(`ALTER TABLE skills ADD COLUMN category TEXT DEFAULT 'technical'`, () => {});
-
-    // 8c. Work Experience
-    db.run(`
-      CREATE TABLE IF NOT EXISTS experience (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        role_title TEXT NOT NULL,
-        company TEXT NOT NULL,
-        badge TEXT DEFAULT 'EXPERIENCE',
-        duration_location TEXT,
-        description TEXT,
-        tags TEXT,
-        sort_order INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -576,68 +557,24 @@ async function initDatabase() {
       const skillsCount = await getQuery('SELECT COUNT(*) as count FROM skills');
       if (skillsCount.count === 0) {
         const defaultSkills = [
-          // Technical Skills
-          { name: 'PYTHON', icon: 'fab fa-python', category: 'technical', sort_order: 1 },
-          { name: 'AI – ASSISTED DEVELOPMENT (VIBE CODING)', icon: 'fas fa-wand-magic-sparkles', category: 'technical', sort_order: 2 },
-          { name: 'GIT/GITHUB', icon: 'fab fa-github', category: 'technical', sort_order: 3 },
-          { name: 'POWER BI', icon: 'fas fa-chart-pie', category: 'technical', sort_order: 4 },
-          { name: 'HTML/CSS/JAVASCRIPT', icon: 'fab fa-code', category: 'technical', sort_order: 5 },
-          // Soft Skills
-          { name: 'COMMUNICATION', icon: 'fas fa-comments', category: 'soft', sort_order: 6 },
-          { name: 'TEAMWORK', icon: 'fas fa-people-group', category: 'soft', sort_order: 7 },
-          { name: 'LEADERSHIP', icon: 'fas fa-crown', category: 'soft', sort_order: 8 },
-          { name: 'TIME MANAGEMENT', icon: 'fas fa-clock', category: 'soft', sort_order: 9 },
-          { name: 'QUICK LEARNING', icon: 'fas fa-bolt', category: 'soft', sort_order: 10 }
+          { name: 'JAVASCRIPT ES6+', icon: 'fab fa-js-square', sort_order: 1 },
+          { name: 'THREE.JS / WEBGL', icon: 'fas fa-cube', sort_order: 2 },
+          { name: 'GSAP ANIMATIONS', icon: 'fas fa-wand-magic-sparkles', sort_order: 3 },
+          { name: 'NODE.JS & EXPRESS', icon: 'fab fa-node-js', sort_order: 4 },
+          { name: 'REACT & NEXT.JS', icon: 'fab fa-react', sort_order: 5 },
+          { name: 'SQLITE & MONGODB', icon: 'fas fa-database', sort_order: 6 },
+          { name: 'PYTHON / AI APIS', icon: 'fab fa-python', sort_order: 7 },
+          { name: 'DOCKER & CLOUD', icon: 'fab fa-docker', sort_order: 8 },
+          { name: 'BESPOKE UI/UX', icon: 'fab fa-figma', sort_order: 9 }
         ];
 
         for (const sk of defaultSkills) {
           await runQuery(
-            'INSERT INTO skills (name, icon, category, sort_order) VALUES (?, ?, ?, ?)',
-            [sk.name, sk.icon, sk.category, sk.sort_order]
+            'INSERT INTO skills (name, icon, sort_order) VALUES (?, ?, ?)',
+            [sk.name, sk.icon, sk.sort_order]
           );
         }
-        console.log('🌱 Seeded default technical & soft skills');
-      }
-
-      const expCount = await getQuery('SELECT COUNT(*) as count FROM experience');
-      if (expCount.count === 0) {
-        const defaultExp = [
-          {
-            role_title: 'Cybersecurity Analyst Intern',
-            company: 'WSCUBE Tech / Tech Training',
-            badge: 'MASTER CLASS',
-            duration_location: '2024 • Online',
-            description: 'Learn fundamentals of Networking, Cyber security architecture, packet analysis, and secure software defense.',
-            tags: 'Networking Fundamentals, TCP/IP models, Cybersecurity Fundamentals, WireShark',
-            sort_order: 1
-          },
-          {
-            role_title: 'Technical & Development Lead',
-            company: 'Academic & Hackathon Projects',
-            badge: 'LEADERSHIP',
-            duration_location: '2023 - Present • Kanpur, UP',
-            description: 'Led end-to-end full-stack development and UI architecture for Khojbeen.ai Lost & Found platform and modern responsive portfolio systems.',
-            tags: 'JavaScript, Node.js, Express, MongoDB, HTML5/CSS3, Git',
-            sort_order: 2
-          },
-          {
-            role_title: 'Hackathon Team Leader & Innovator',
-            company: 'Hack India & National Tech Fests',
-            badge: 'HACKATHONS',
-            duration_location: '2023 - 2026 • Kanpur, UP',
-            description: 'Led agile developer teams across 3+ hackathons; engineered AI-powered screening prototypes, blockchain identity verification, and zero-shot AI platforms.',
-            tags: 'Python, AI/Vibe Coding, Blockchain, Rapid Prototyping, Team Leadership',
-            sort_order: 3
-          }
-        ];
-
-        for (const exp of defaultExp) {
-          await runQuery(
-            'INSERT INTO experience (role_title, company, badge, duration_location, description, tags, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [exp.role_title, exp.company, exp.badge, exp.duration_location, exp.description, exp.tags, exp.sort_order]
-          );
-        }
-        console.log('🌱 Seeded default work experience records');
+        console.log('🌱 Seeded default skills');
       }
     } catch (e) {
       console.error('Error seeding data:', e);

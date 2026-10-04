@@ -52,10 +52,9 @@ function updateThemeToggleIcon() {
 
 async function fetchAndHydrateAll() {
   try {
-    const [profileRes, skillsRes, expRes, projectsRes, eduRes, certsRes, reviewsRes, themeRes, customRes] = await Promise.allSettled([
+    const [profileRes, skillsRes, projectsRes, eduRes, certsRes, reviewsRes, themeRes, customRes] = await Promise.allSettled([
       fetch('/api/profile').then(r => r.json()),
       fetch('/api/skills').then(r => r.json()),
-      fetch('/api/experience').then(r => r.json()),
       fetch('/api/projects').then(r => r.json()),
       fetch('/api/education').then(r => r.json()),
       fetch('/api/certifications').then(r => r.json()),
@@ -78,10 +77,6 @@ async function fetchAndHydrateAll() {
 
     if (skillsRes.status === 'fulfilled' && skillsRes.value.success && skillsRes.value.data) {
       hydrateSkills(skillsRes.value.data);
-    }
-
-    if (expRes.status === 'fulfilled' && expRes.value.success && expRes.value.data) {
-      hydrateExperience(expRes.value.data);
     }
 
     if (projectsRes.status === 'fulfilled' && projectsRes.value.success && projectsRes.value.data) {
@@ -297,238 +292,14 @@ function hydrateProfile(p) {
   }
 }
 
-window.switchSkillsTab = function(tab) {
-  const pills = document.querySelectorAll('.skills-tab-pill');
-  pills.forEach(p => p.classList.remove('active'));
-
-  const activeBtn = document.getElementById(`tab-${tab}-skills`) || document.querySelector(`[data-skill-tab="${tab}"]`);
-  if (activeBtn) activeBtn.classList.add('active');
-
-  const techBlock = document.getElementById('tech-skills-block');
-  const softBlock = document.getElementById('soft-skills-block');
-  const dualContainer = document.getElementById('skills-dual-container');
-
-  if (tab === 'all') {
-    if (techBlock) techBlock.style.display = '';
-    if (softBlock) softBlock.style.display = '';
-    if (dualContainer && window.innerWidth > 992) dualContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
-  } else if (tab === 'technical') {
-    if (techBlock) techBlock.style.display = '';
-    if (softBlock) softBlock.style.display = 'none';
-    if (dualContainer) dualContainer.style.gridTemplateColumns = '1fr';
-  } else if (tab === 'soft') {
-    if (techBlock) techBlock.style.display = 'none';
-    if (softBlock) softBlock.style.display = '';
-    if (dualContainer) dualContainer.style.gridTemplateColumns = '1fr';
-  }
-};
-
 function hydrateSkills(skills) {
-  if (!skills || !skills.length) return;
-
-  const techSkills = skills.filter(s => (s.category || 'technical') === 'technical');
-  const softSkills = skills.filter(s => s.category === 'soft');
-
-  // Update counts
-  const techBadge = document.getElementById('tech-skills-badge');
-  if (techBadge) techBadge.textContent = `${techSkills.length} Skills`;
-
-  const softBadge = document.getElementById('soft-skills-badge');
-  if (softBadge) softBadge.textContent = `${softSkills.length} Skills`;
-
-  // Hydrate Technical Skills Grid
-  const techGrid = document.getElementById('tech-skills-grid');
-  if (techGrid) {
-    techGrid.innerHTML = techSkills.map(s => `
-      <div class="skill-chip-item glass-sheen">
-        <div class="skill-chip-icon"><i class="${s.icon || 'fas fa-cube'}"></i></div>
-        <div class="skill-chip-info">
-          <span class="skill-chip-name">${s.name}</span>
-          <span class="skill-chip-sub">Technical Tool</span>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  // Hydrate Soft Skills Grid
-  const softGrid = document.getElementById('soft-skills-grid');
-  if (softGrid) {
-    softGrid.innerHTML = softSkills.map(s => `
-      <div class="skill-chip-item glass-sheen">
-        <div class="skill-chip-icon"><i class="${s.icon || 'fas fa-brain'}"></i></div>
-        <div class="skill-chip-info">
-          <span class="skill-chip-name">${s.name}</span>
-          <span class="skill-chip-sub">Core Competency</span>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  // Ambient Infinite Marquee Track (all skills)
-  const marqueeContainer = document.getElementById('skills-marquee-track');
-  if (marqueeContainer) {
-    const itemsHtml = skills.map(s => `
-      <div class="marquee-item"><i class="${s.icon || 'fas fa-cube'}"></i> ${s.name}</div>
-    `).join('');
-    marqueeContainer.innerHTML = itemsHtml + itemsHtml;
-  }
-}
-
-/* ==========================================================================
-   WORK EXPERIENCE CAROUSEL / SLIDER
-   ========================================================================== */
-
-window.experienceData = [];
-window.currentExpSlide = 0;
-
-window.navigateExperience = function(dir) {
-  const list = window.experienceData || [];
-  if (!list.length) return;
-
-  const isMobile = window.innerWidth <= 860;
-  const cardsPerView = isMobile ? 1 : 2;
-  const maxSlide = Math.max(0, list.length - cardsPerView);
-
-  window.currentExpSlide = Math.min(Math.max(window.currentExpSlide + dir, 0), maxSlide);
-  updateExperienceSlider();
-};
-
-window.goToExperienceSlide = function(idx) {
-  const list = window.experienceData || [];
-  if (!list.length) return;
-
-  const isMobile = window.innerWidth <= 860;
-  const cardsPerView = isMobile ? 1 : 2;
-  const maxSlide = Math.max(0, list.length - cardsPerView);
-
-  window.currentExpSlide = Math.min(Math.max(idx, 0), maxSlide);
-  updateExperienceSlider();
-};
-
-function updateExperienceSlider() {
-  const track = document.getElementById('experience-cards-track');
-  const cards = track ? track.querySelectorAll('.experience-card') : [];
-  if (!track || !cards.length) return;
-
-  const isMobile = window.innerWidth <= 860;
-  const cardsPerView = isMobile ? 1 : 2;
-  const maxSlide = Math.max(0, cards.length - cardsPerView);
-
-  if (window.currentExpSlide > maxSlide) {
-    window.currentExpSlide = maxSlide;
-  }
-
-  const card = cards[0];
-  const cardRect = card.getBoundingClientRect();
-  const gap = 32; // 2rem
-  const slideDistance = (cardRect.width + gap) * window.currentExpSlide;
-
-  track.style.transform = `translateX(-${slideDistance}px)`;
-
-  // Update numbers
-  const currEl = document.getElementById('exp-curr-idx');
-  if (currEl) {
-    const displayNum = Math.min(window.currentExpSlide + 1, cards.length);
-    currEl.textContent = displayNum < 10 ? `0${displayNum}` : displayNum;
-  }
-
-  // Update dots
-  const dots = document.querySelectorAll('.exp-dot');
-  dots.forEach((d, idx) => {
-    if (idx === window.currentExpSlide) {
-      d.classList.add('active');
-    } else {
-      d.classList.remove('active');
-    }
-  });
-
-  // Update button opacities
-  const prevBtn = document.getElementById('exp-prev-btn');
-  const nextBtn = document.getElementById('exp-next-btn');
-  if (prevBtn) prevBtn.style.opacity = window.currentExpSlide === 0 ? '0.4' : '1';
-  if (nextBtn) nextBtn.style.opacity = window.currentExpSlide >= maxSlide ? '0.4' : '1';
-}
-
-function hydrateExperience(experiences) {
-  const track = document.getElementById('experience-cards-track');
-  if (!track || !experiences || !experiences.length) return;
-
-  window.experienceData = experiences;
-  window.currentExpSlide = 0;
-
-  // Counter total
-  const totalEl = document.getElementById('exp-total-idx');
-  if (totalEl) {
-    const totalCount = experiences.length;
-    totalEl.textContent = totalCount < 10 ? `0${totalCount}` : totalCount;
-  }
-
-  track.innerHTML = experiences.map((exp, idx) => {
-    const badgeText = (exp.badge || 'EXPERIENCE').toUpperCase();
-    let badgeClass = 'badge-default';
-    if (badgeText.includes('MASTER') || badgeText.includes('CLASS')) badgeClass = 'badge-masterclass';
-    else if (badgeText.includes('LEAD')) badgeClass = 'badge-leadership';
-    else if (badgeText.includes('HACK')) badgeClass = 'badge-hackathons';
-
-    const tagsArray = exp.tags ? exp.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
-
-    return `
-      <div class="experience-card glass-sheen" data-index="${idx}">
-        <div class="exp-badge-row">
-          <span class="exp-role-badge ${badgeClass}">${exp.badge || 'EXPERIENCE'}</span>
-        </div>
-        <h3 class="exp-role-title">${exp.role_title}</h3>
-        <div class="exp-company-row">
-          <i class="fas fa-building-columns"></i>
-          <span>${exp.company}</span>
-        </div>
-        ${exp.duration_location ? `
-          <div class="exp-date-pill">
-            <i class="far fa-calendar-alt"></i> ${exp.duration_location}
-          </div>
-        ` : ''}
-        <p class="exp-desc">${exp.description || ''}</p>
-        <div class="exp-divider"></div>
-        <div class="exp-tags-list">
-          ${tagsArray.map(tag => `<span class="exp-tech-tag">${tag}</span>`).join('')}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Generate indicator dots
-  const dotsContainer = document.getElementById('experience-dots-bar');
-  if (dotsContainer) {
-    const isMobile = window.innerWidth <= 860;
-    const cardsPerView = isMobile ? 1 : 2;
-    const dotCount = Math.max(1, experiences.length - cardsPerView + 1);
-
-    dotsContainer.innerHTML = Array.from({ length: dotCount }).map((_, i) => `
-      <button class="exp-dot ${i === 0 ? 'active' : ''}" aria-label="Go to slide ${i + 1}" onclick="goToExperienceSlide(${i})"></button>
-    `).join('');
-  }
-
-  // Window resize handler
-  if (!window._expResizeHandlerAttached) {
-    window.addEventListener('resize', () => {
-      updateExperienceSlider();
-    });
-    window._expResizeHandlerAttached = true;
-  }
-
-  // Touch swipe
-  let touchStartX = 0;
-  let touchEndX = 0;
-  track.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
-  }, { passive: true });
-  track.addEventListener('touchend', e => {
-    touchEndX = e.changedTouches[0].screenX;
-    if (touchStartX - touchEndX > 50) window.navigateExperience(1);
-    else if (touchEndX - touchStartX > 50) window.navigateExperience(-1);
-  }, { passive: true });
-
-  updateExperienceSlider();
+  const container = document.getElementById('skills-marquee-track');
+  if (!container || !skills.length) return;
+  const itemsHtml = skills.map(s => `
+    <div class="marquee-item"><i class="${s.icon || 'fas fa-cube'}"></i> ${s.name}</div>
+  `).join('');
+  // Render duplicate set for continuous infinite marquee loop
+  container.innerHTML = itemsHtml + itemsHtml;
 }
 
 function hydrateProjects(projects) {
