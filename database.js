@@ -233,17 +233,28 @@ async function initDatabase() {
     // Ensure hero_bg_color column exists in existing database
     db.run(`ALTER TABLE theme_settings ADD COLUMN hero_bg_color TEXT DEFAULT "#0b1a1c"`, () => {});
 
-    // Seed default admin and content if empty
+    // Seed and sync admin credentials
     try {
-      const adminCount = await getQuery('SELECT COUNT(*) as count FROM admin_users');
-      if (adminCount.count === 0) {
-        const hashedPassword = await bcrypt.hash('admin123', 10);
-        await runQuery(
-          'INSERT INTO admin_users (username, password_hash) VALUES (?, ?)',
-          ['admin', hashedPassword]
-        );
-        console.log('👤 Seeded default admin user (admin / admin123)');
+      const targetUser = 'komalyadav';
+      const targetPass = 'komal642006';
+      const hashedPassword = await bcrypt.hash(targetPass, 10);
+
+      const existingUser = await getQuery('SELECT * FROM admin_users WHERE username = ?', [targetUser]);
+      if (!existingUser) {
+        // If old 'admin' exists, update it to 'komalyadav', otherwise insert new
+        const oldAdmin = await getQuery('SELECT * FROM admin_users WHERE username = ?', ['admin']);
+        if (oldAdmin) {
+          await runQuery('UPDATE admin_users SET username = ?, password_hash = ? WHERE username = ?', [targetUser, hashedPassword, 'admin']);
+        } else {
+          await runQuery('INSERT INTO admin_users (username, password_hash) VALUES (?, ?)', [targetUser, hashedPassword]);
+        }
+        console.log(`👤 Configured admin user: ${targetUser}`);
+      } else {
+        await runQuery('UPDATE admin_users SET password_hash = ? WHERE username = ?', [hashedPassword, targetUser]);
+        console.log(`👤 Updated credentials for: ${targetUser}`);
       }
+      // Remove any legacy default admin user
+      await runQuery('DELETE FROM admin_users WHERE username = ?', ['admin']);
 
       const profileCount = await getQuery('SELECT COUNT(*) as count FROM profile');
       if (profileCount.count === 0) {
