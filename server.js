@@ -9,6 +9,7 @@ const multer = require('multer');
 const { db, runQuery, getQuery, allQuery } = require('./database');
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'komal_super_secret_jwt_key_2026_production';
 
@@ -126,7 +127,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.cookie('auth_token', token, {
       httpOnly: true,
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: 'lax'
     });
