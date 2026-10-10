@@ -245,10 +245,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const mobileLinks = document.querySelectorAll('.mobile-menu-list .nav-link');
 
   if (mobileToggle && mobileDrawer) {
-    mobileToggle.addEventListener('click', () => mobileDrawer.classList.add('open'));
-    if (mobileClose) mobileClose.addEventListener('click', () => mobileDrawer.classList.remove('open'));
+    mobileToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mobileDrawer.classList.toggle('open');
+    });
+    if (mobileClose) {
+      mobileClose.addEventListener('click', () => mobileDrawer.classList.remove('open'));
+    }
     mobileLinks.forEach((link) => {
       link.addEventListener('click', () => mobileDrawer.classList.remove('open'));
+    });
+    document.addEventListener('click', (e) => {
+      if (mobileDrawer.classList.contains('open') && !mobileDrawer.contains(e.target) && !mobileToggle.contains(e.target)) {
+        mobileDrawer.classList.remove('open');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && mobileDrawer.classList.contains('open')) {
+        mobileDrawer.classList.remove('open');
+      }
     });
   }
 });

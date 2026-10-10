@@ -11,12 +11,16 @@
 })();
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Setup Theme Toggle Button
+  // Setup Theme Toggle Buttons (Desktop & Mobile)
   const themeToggleBtn = document.getElementById('theme-mode-toggle');
+  const mobileThemeToggleBtn = document.getElementById('mobile-theme-mode-toggle');
   if (themeToggleBtn) {
-    updateThemeToggleIcon();
     themeToggleBtn.addEventListener('click', toggleLightDarkMode);
   }
+  if (mobileThemeToggleBtn) {
+    mobileThemeToggleBtn.addEventListener('click', toggleLightDarkMode);
+  }
+  updateThemeToggleIcon();
 
   // Load all dynamic data from server
   await fetchAndHydrateAll();
@@ -110,10 +114,16 @@ function toggleLightDarkMode() {
 }
 
 function updateThemeToggleIcon() {
+  const currentMode = document.documentElement.getAttribute('data-mode') || 'dark';
+  const isLight = currentMode === 'light';
+  const html = isLight 
+    ? '<i class="fas fa-moon" style="color: #818cf8;"></i> <span>Dark Mode</span>' 
+    : '<i class="fas fa-sun" style="color: #facc15;"></i> <span>Light Mode</span>';
+
   const btn = document.getElementById('theme-mode-toggle');
-  if (!btn) return;
-  const currentMode = document.documentElement.getAttribute('data-mode');
-  btn.innerHTML = currentMode === 'light' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+  const mobileBtn = document.getElementById('mobile-theme-mode-toggle');
+  if (btn) btn.innerHTML = html;
+  if (mobileBtn) mobileBtn.innerHTML = html;
 }
 
 /* ==========================================================================
@@ -143,6 +153,7 @@ async function fetchAndHydrateAll() {
       if (mode) {
         document.documentElement.setAttribute('data-mode', mode);
         localStorage.setItem('komal_portfolio_mode', mode);
+        updateThemeToggleIcon();
       }
     }
 

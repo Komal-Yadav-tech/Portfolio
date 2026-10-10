@@ -105,9 +105,14 @@
   <!-- 3. MAIN DASHBOARD CONTENT -->
   <main class="admin-main-content">
     <div class="admin-top-header">
-      <div class="header-title-box">
-        <h1 id="tab-heading-title">Dashboard Overview</h1>
-        <p id="tab-heading-subtitle">Real-time content management and live website synchronization</p>
+      <div class="header-title-box" style="display: flex; align-items: center; gap: 0.85rem;">
+        <button id="admin-sidebar-toggle-btn" class="admin-mobile-toggle" aria-label="Toggle Navigation Sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div>
+          <h1 id="tab-heading-title">Dashboard Overview</h1>
+          <p id="tab-heading-subtitle">Real-time content management and live website synchronization</p>
+        </div>
       </div>
       <div class="admin-header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
         <button id="admin-header-mode-btn" class="admin-btn admin-btn-outline" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;" onclick="toggleAdminMode()" title="Toggle Dark/Light Mode on Live Site">

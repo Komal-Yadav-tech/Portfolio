@@ -119,10 +119,27 @@ function hideLoginScreen() {
 
 function initTabNavigation() {
   const navBtns = document.querySelectorAll('.nav-tab-btn');
+  const sidebar = document.querySelector('.admin-sidebar');
+  const toggleBtn = document.getElementById('admin-sidebar-toggle-btn');
+
+  if (toggleBtn && sidebar) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sidebar.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  }
+
   navBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       const tabId = btn.getAttribute('data-tab');
       switchTab(tabId);
+      if (sidebar) sidebar.classList.remove('open');
     });
   });
 }
