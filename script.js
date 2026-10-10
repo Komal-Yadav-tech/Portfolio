@@ -135,10 +135,14 @@ async function fetchAndHydrateAll() {
     ]);
 
     if (themeRes.status === 'fulfilled' && themeRes.value.success && themeRes.value.data) {
-      const { active_theme } = themeRes.value.data;
+      const { active_theme, mode } = themeRes.value.data;
       if (active_theme) {
         document.documentElement.setAttribute('data-theme', active_theme);
         localStorage.setItem('komal_portfolio_theme', active_theme);
+      }
+      if (mode) {
+        document.documentElement.setAttribute('data-mode', mode);
+        localStorage.setItem('komal_portfolio_mode', mode);
       }
     }
 
@@ -393,6 +397,18 @@ window.switchSkillsTab = function(tab) {
   }
 };
 
+function renderSkillBadge(iconStr, defaultClass = 'fas fa-cube') {
+  if (!iconStr || !iconStr.trim()) {
+    return `<i class="${defaultClass}"></i>`;
+  }
+  const clean = iconStr.trim();
+  const isFA = clean.includes('fa-') || clean.startsWith('fa ') || clean.startsWith('fab ') || clean.startsWith('fas ') || clean.startsWith('far ');
+  if (isFA) {
+    return `<i class="${clean}"></i>`;
+  }
+  return `<span class="skill-chip-emoji">${clean}</span>`;
+}
+
 function hydrateSkills(skills) {
   if (!skills || !skills.length) return;
 
@@ -411,7 +427,7 @@ function hydrateSkills(skills) {
   if (techGrid) {
     techGrid.innerHTML = techSkills.map(s => `
       <div class="skill-chip-item glass-sheen">
-        <div class="skill-chip-icon"><i class="${s.icon || 'fas fa-cube'}"></i></div>
+        <div class="skill-chip-icon">${renderSkillBadge(s.icon, 'fas fa-code')}</div>
         <div class="skill-chip-info">
           <span class="skill-chip-name">${s.name}</span>
           <span class="skill-chip-sub">Technical Tool</span>
@@ -425,7 +441,7 @@ function hydrateSkills(skills) {
   if (softGrid) {
     softGrid.innerHTML = softSkills.map(s => `
       <div class="skill-chip-item glass-sheen">
-        <div class="skill-chip-icon"><i class="${s.icon || 'fas fa-brain'}"></i></div>
+        <div class="skill-chip-icon">${renderSkillBadge(s.icon, 'fas fa-brain')}</div>
         <div class="skill-chip-info">
           <span class="skill-chip-name">${s.name}</span>
           <span class="skill-chip-sub">Core Competency</span>
@@ -438,7 +454,7 @@ function hydrateSkills(skills) {
   const marqueeContainer = document.getElementById('skills-marquee-track');
   if (marqueeContainer) {
     const itemsHtml = skills.map(s => `
-      <div class="marquee-item"><i class="${s.icon || 'fas fa-cube'}"></i> ${s.name}</div>
+      <div class="marquee-item">${renderSkillBadge(s.icon, 'fas fa-cube')} ${s.name}</div>
     `).join('');
     marqueeContainer.innerHTML = itemsHtml + itemsHtml;
   }

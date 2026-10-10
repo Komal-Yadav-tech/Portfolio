@@ -943,7 +943,7 @@ img, video {
 /* Section Header Shared Styles */
 .section-header {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 2.2rem;
   position: relative;
 }
 
@@ -955,7 +955,7 @@ img, video {
   text-transform: uppercase;
   color: var(--accent-primary);
   display: inline-block;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.6rem;
   background: var(--badge-bg);
   padding: 0.4rem 1rem;
   border-radius: var(--radius-full);
@@ -979,7 +979,7 @@ img, video {
 
 .section-desc {
   max-width: 650px;
-  margin: 1rem auto 0 auto;
+  margin: 0.8rem auto 0 auto;
   color: var(--text-secondary);
   font-size: 1.05rem;
 }
@@ -989,11 +989,11 @@ img, video {
    ========================================================================== */
 
 .hero-section {
-  min-height: 100vh;
+  min-height: auto;
   display: flex;
   align-items: center;
   padding-top: calc(var(--header-height) + 2rem);
-  padding-bottom: 4rem;
+  padding-bottom: 2.5rem;
   position: relative;
   background-color: var(--bg-color) !important;
   background-image: none !important;
@@ -1184,7 +1184,7 @@ img, video {
    ========================================================================== */
 
 .services-section {
-  padding: 7rem 0;
+  padding: 3.5rem 0;
   position: relative;
 }
 
@@ -1265,7 +1265,7 @@ img, video {
    ========================================================================== */
 
 .skills-section {
-  padding: 6rem 0;
+  padding: 3.5rem 0;
   position: relative;
   overflow: hidden;
   background: var(--bg-secondary);
@@ -1279,7 +1279,7 @@ img, video {
   justify-content: center;
   align-items: center;
   gap: 0.75rem;
-  margin: 0 auto 3rem auto;
+  margin: 0 auto 1.8rem auto;
   flex-wrap: wrap;
   padding: 0.5rem;
   background: rgba(255, 255, 255, 0.02);
@@ -1323,7 +1323,7 @@ img, video {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
-  margin-bottom: 4rem;
+  margin-bottom: 2.2rem;
 }
 
 @media (max-width: 992px) {
@@ -1453,23 +1453,94 @@ img, video {
 }
 
 .skill-chip-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: var(--badge-bg);
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
-  color: var(--accent-primary);
+  font-size: 1.35rem;
   flex-shrink: 0;
-  transition: transform var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
 }
 
 .skill-chip-item:hover .skill-chip-icon {
-  transform: rotate(6deg) scale(1.1);
-  background: var(--accent-primary);
-  color: #030712;
+  transform: rotate(6deg) scale(1.12);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Authentic Original Colors for Skill Icons & Emojis */
+.skill-chip-emoji {
+  font-size: 1.45rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: none !important;
+}
+
+/* Specific FontAwesome Brand & Concept Authentic Colors */
+.skill-chip-icon .fa-python,
+.marquee-item .fa-python {
+  color: #38bdf8 !important; /* Python Blue/Cyan */
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.5));
+}
+
+.skill-chip-icon .fa-wand-magic-sparkles,
+.marquee-item .fa-wand-magic-sparkles {
+  color: #f59e0b !important; /* Magic Amber / Golden Sparkles */
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.5));
+}
+
+.skill-chip-icon .fa-github,
+.marquee-item .fa-github {
+  color: #f8fafc !important; /* GitHub Pure White */
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+}
+
+.skill-chip-icon .fa-chart-pie,
+.marquee-item .fa-chart-pie {
+  color: #eab308 !important; /* Power BI Signature Golden Amber */
+  filter: drop-shadow(0 0 6px rgba(234, 179, 8, 0.5));
+}
+
+.skill-chip-icon .fa-code,
+.marquee-item .fa-code {
+  color: #f97316 !important; /* HTML/CSS/JS Radiant Coral Orange */
+  filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.5));
+}
+
+.skill-chip-icon .fa-comments,
+.marquee-item .fa-comments {
+  color: #06b6d4 !important; /* Communication Cyan */
+  filter: drop-shadow(0 0 6px rgba(6, 182, 212, 0.5));
+}
+
+.skill-chip-icon .fa-people-group,
+.marquee-item .fa-people-group {
+  color: #10b981 !important; /* Teamwork Vibrant Emerald Green */
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.5));
+}
+
+.skill-chip-icon .fa-crown,
+.marquee-item .fa-crown {
+  color: #fbbf24 !important; /* Leadership Royal Gold */
+  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6));
+}
+
+.skill-chip-icon .fa-clock,
+.marquee-item .fa-clock {
+  color: #38bdf8 !important; /* Time Management Ocean Blue */
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.5));
+}
+
+.skill-chip-icon .fa-bolt,
+.marquee-item .fa-bolt {
+  color: #facc15 !important; /* Quick Learning Electric Yellow */
+  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.7));
 }
 
 .skill-chip-info {
@@ -1550,7 +1621,7 @@ img, video {
    ========================================================================== */
 
 .experience-section {
-  padding: 6rem 0;
+  padding: 3.5rem 0;
   position: relative;
   background: radial-gradient(ellipse at 50% 20%, var(--accent-glow) 0%, transparent 65%);
   border-top: 1px solid var(--border-color);
@@ -1562,7 +1633,7 @@ img, video {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 2.8rem;
+  margin-bottom: 1.8rem;
   flex-wrap: wrap;
   gap: 1.5rem;
 }
@@ -1930,7 +2001,7 @@ img, video {
    ========================================================================== */
 
 .projects-section {
-  padding: 7rem 0;
+  padding: 3.5rem 0;
   position: relative;
   overflow: hidden;
 }
@@ -1943,7 +2014,7 @@ img, video {
 .horizontal-track {
   display: flex;
   gap: 2.5rem;
-  padding: 2rem 0;
+  padding: 1.25rem 0;
   width: max-content;
 }
 
@@ -2033,7 +2104,7 @@ img, video {
    ========================================================================== */
 
 .marquee-section {
-  padding: 3rem 0;
+  padding: 2.2rem 0;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
@@ -2074,21 +2145,21 @@ img, video {
    ========================================================================== */
 
 .about-section {
-  padding: 7rem 0;
+  padding: 3.5rem 0;
   position: relative;
 }
 
 .about-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  margin-bottom: 4rem;
+  gap: 2.5rem;
+  margin-bottom: 2.5rem;
 }
 
 @media (max-width: 992px) {
   .about-grid {
     grid-template-columns: 1fr;
-    gap: 2.5rem;
+    gap: 2rem;
   }
 }
 
@@ -2097,7 +2168,7 @@ img, video {
    ========================================================================== */
 
 .education-section-block {
-  margin: 4.5rem 0 5rem 0;
+  margin: 2.5rem 0 3rem 0;
   position: relative;
 }
 
@@ -2268,7 +2339,7 @@ img, video {
 
 /* 3-Step Work Process */
 .work-process-container {
-  margin-top: 5rem;
+  margin-top: 2.5rem;
 }
 
 .process-grid {
@@ -2324,11 +2395,11 @@ img, video {
 
 /* Stylized Quote Card */
 .quote-card-box {
-  margin-top: 5rem;
+  margin-top: 2.5rem;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  padding: 3.5rem 3rem;
+  padding: 2.2rem 2rem;
   position: relative;
   text-align: center;
   backdrop-filter: var(--glass-blur);
@@ -2336,20 +2407,20 @@ img, video {
 }
 
 .quote-icon {
-  font-size: 4rem;
+  font-size: 3.2rem;
   color: var(--accent-primary);
   opacity: 0.3;
   line-height: 1;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
 }
 
 .quote-content {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.5;
   color: var(--text-primary);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
@@ -2357,7 +2428,7 @@ img, video {
 
 .quote-signature-author {
   font-family: var(--font-hand);
-  font-size: 2.4rem;
+  font-size: 2.2rem;
   color: var(--accent-primary);
 }
 
@@ -2373,7 +2444,7 @@ img, video {
    ========================================================================== */
 
 .certifications-section {
-  padding: 5.5rem 0;
+  padding: 3.5rem 0;
   position: relative;
 }
 
@@ -2471,7 +2542,7 @@ img, video {
    ========================================================================== */
 
 .testimonials-section {
-  padding: 7rem 0;
+  padding: 3.5rem 0;
   position: relative;
 }
 
@@ -2479,7 +2550,7 @@ img, video {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 3.5rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap;
   gap: 1.5rem;
 }
@@ -2559,7 +2630,7 @@ img, video {
    ========================================================================== */
 
 .custom-blocks-section {
-  padding: 4rem 0;
+  padding: 2.5rem 0;
 }
 
 .custom-spotlight-card {
@@ -2602,7 +2673,7 @@ img, video {
    ========================================================================== */
 
 .site-footer {
-  padding: 6rem 0 3rem 0;
+  padding: 3.5rem 0 2rem 0;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
   position: relative;
@@ -2611,8 +2682,8 @@ img, video {
 .footer-grid {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
-  gap: 4rem;
-  margin-bottom: 4rem;
+  gap: 3rem;
+  margin-bottom: 2.5rem;
 }
 
 .footer-cta-headline {

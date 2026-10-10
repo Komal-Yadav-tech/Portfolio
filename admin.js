@@ -20,6 +20,16 @@ const THEMES_CONFIG = [
 let currentUser = null;
 let currentReviewFilter = 'all';
 
+function escapeAdminHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   initLoginHandler();
   initTabNavigation();
@@ -129,6 +139,8 @@ function switchTab(tabId) {
   });
 
   if (tabId === 'experience') loadExperience();
+  if (tabId === 'themes') loadThemeSetting();
+  if (tabId === 'skills') loadSkills();
 
   // Update header titles
   const titles = {
@@ -647,10 +659,16 @@ function renderSkillsTable() {
       ? `<span class="skill-cat-badge badge-soft"><i class="fas fa-brain"></i> Soft Skill</span>`
       : `<span class="skill-cat-badge badge-tech"><i class="fas fa-code"></i> Technical</span>`;
 
+    const iconStr = (s.icon || '').trim();
+    const isFA = iconStr.includes('fa-') || iconStr.startsWith('fa ') || iconStr.startsWith('fab ') || iconStr.startsWith('fas ');
+    const iconDisplay = isFA
+      ? `<i class="${iconStr}" style="font-size: 1.35rem;"></i>`
+      : `<span style="font-size: 1.5rem; line-height: 1;">${iconStr || '⚡'}</span>`;
+
     return `
       <tr>
-        <td><i class="${s.icon || 'fas fa-cube'}" style="color: var(--admin-accent); font-size: 1.25rem;"></i></td>
-        <td><strong>${s.name}</strong></td>
+        <td style="text-align: center; width: 60px;">${iconDisplay}</td>
+        <td><strong style="color: #fff;">${escapeAdminHtml(s.name)}</strong></td>
         <td>${catBadge}</td>
         <td>${s.sort_order}</td>
         <td>
@@ -670,15 +688,43 @@ function openEditSkillById(id) {
   openEditSkillModal(s);
 }
 
-function pickPresetIcon(inputTargetId, iconClass) {
-  const el = document.getElementById(inputTargetId);
-  if (el) el.value = iconClass;
-}
+window.pickSkillEmoji = function(inputId, previewId, emojiChar) {
+  const input = document.getElementById(inputId);
+  if (input) {
+    input.value = emojiChar;
+    updateSkillIconPreview(inputId, previewId);
+  }
+};
+
+window.pickSkillPresetIcon = function(inputId, previewId, iconClass) {
+  const input = document.getElementById(inputId);
+  if (input) {
+    input.value = iconClass;
+    updateSkillIconPreview(inputId, previewId);
+  }
+};
+
+window.updateSkillIconPreview = function(inputId, previewId) {
+  const input = document.getElementById(inputId);
+  const preview = document.getElementById(previewId);
+  if (!input || !preview) return;
+  const val = input.value.trim();
+  const isFA = val.includes('fa-') || val.startsWith('fa ') || val.startsWith('fab ') || val.startsWith('fas ');
+  if (!val) {
+    preview.innerHTML = '<span style="opacity: 0.4;">⚡</span>';
+  } else if (isFA) {
+    preview.innerHTML = `<i class="${val}"></i>`;
+  } else {
+    preview.innerHTML = `<span style="font-size: 1.8rem; line-height: 1;">${val}</span>`;
+  }
+};
 
 function openAddSkillModal() {
   const defaultCategory = window.currentSkillFilter !== 'all' ? window.currentSkillFilter : 'technical';
   openCrudModal(`
-    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-plus"></i> Add Skill / Competency</h3>
+    <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.6rem;">
+      <i class="fas fa-plus" style="color: var(--admin-accent);"></i> Add Skill / Competency
+    </h3>
     <form id="add-skill-form">
       <div class="form-row">
         <div class="form-group" style="flex: 1;">
@@ -693,30 +739,78 @@ function openAddSkillModal() {
           <input type="text" id="sk-name" class="form-control" placeholder="e.g. PYTHON or COMMUNICATION" required>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group" style="flex: 2;">
-          <label class="form-label">FontAwesome Icon Class</label>
-          <input type="text" id="sk-icon" class="form-control" placeholder="fab fa-python" value="fas fa-cube">
-          <div class="icon-preset-picker">
-            <span style="font-size: 0.75rem; color: var(--admin-text-sub); width: 100%;">Popular Icon Presets (Click to choose):</span>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fab fa-python')"><i class="fab fa-python"></i> Python</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-wand-magic-sparkles')"><i class="fas fa-wand-magic-sparkles"></i> AI/Vibe</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fab fa-github')"><i class="fab fa-github"></i> Git/GitHub</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-chart-pie')"><i class="fas fa-chart-pie"></i> Power BI</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fab fa-code')"><i class="fab fa-code"></i> HTML/JS</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-comments')"><i class="fas fa-comments"></i> Communication</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-people-group')"><i class="fas fa-people-group"></i> Teamwork</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-crown')"><i class="fas fa-crown"></i> Leadership</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-clock')"><i class="fas fa-clock"></i> Time Mgmt</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('sk-icon', 'fas fa-bolt')"><i class="fas fa-bolt"></i> Learning</button>
+
+      <!-- Live Preview & Main Icon/Emoji Field -->
+      <div class="form-group" style="background: rgba(255,255,255,0.03); border: 1px solid var(--admin-border); padding: 1.25rem; border-radius: 10px; margin-bottom: 1.25rem;">
+        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+          <span><strong>Skill Emoji or FontAwesome Class *</strong></span>
+          <span style="font-size: 0.75rem; color: var(--admin-text-sub);">Click any emoji or preset below</span>
+        </label>
+        
+        <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem;">
+          <div id="sk-add-preview" class="skill-icon-preview-box">
+            <span style="font-size: 1.8rem;">🐍</span>
+          </div>
+          <div style="flex: 1;">
+            <input type="text" id="sk-icon" class="form-control" placeholder="e.g. 🐍 or fab fa-python" value="🐍" oninput="updateSkillIconPreview('sk-icon', 'sk-add-preview')" required>
           </div>
         </div>
-        <div class="form-group" style="flex: 1;">
-          <label class="form-label">Sort Order</label>
-          <input type="number" id="sk-order" class="form-control" value="0">
+
+        <!-- 1. Dedicated EMOJI PICKER (as requested) -->
+        <div style="margin-top: 1rem;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--admin-accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem;">
+            😀 Quick Emoji Options (Click to add):
+          </div>
+          <div class="emoji-preset-picker">
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '🐍')">🐍 Python</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '🤖')">🤖 AI/ML</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '✨')">✨ Vibe Coding</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '🐙')">🐙 Git/GitHub</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '📊')">📊 Power BI</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '💻')">💻 HTML/CSS/JS</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '🌐')">🌐 Web Dev</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '💬')">💬 Communication</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '👥')">👥 Teamwork</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '👑')">👑 Leadership</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '⏰')">⏰ Time Mgmt</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '⚡')">⚡ Quick Learning</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '🚀')">🚀 Full-Stack</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '🔥')">🔥 Modern Tech</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '🛡️')">🛡️ Cybersecurity</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '🧠')">🧠 Problem Solving</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '🎯')">🎯 Focus</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('sk-icon', 'sk-add-preview', '💡')">💡 Innovation</button>
+          </div>
+        </div>
+
+        <!-- 2. FontAwesome Class Alternative -->
+        <div style="margin-top: 1rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.8rem;">
+          <div style="font-size: 0.75rem; color: var(--admin-text-sub); margin-bottom: 0.35rem;">
+            Or select FontAwesome Brand Icon:
+          </div>
+          <div class="icon-preset-picker">
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('sk-icon', 'sk-add-preview', 'fab fa-python')"><i class="fab fa-python" style="color: #38bdf8;"></i> Python</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('sk-icon', 'sk-add-preview', 'fas fa-wand-magic-sparkles')"><i class="fas fa-wand-magic-sparkles" style="color: #f59e0b;"></i> AI/Vibe</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('sk-icon', 'sk-add-preview', 'fab fa-github')"><i class="fab fa-github" style="color: #fff;"></i> GitHub</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('sk-icon', 'sk-add-preview', 'fas fa-chart-pie')"><i class="fas fa-chart-pie" style="color: #eab308;"></i> Power BI</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('sk-icon', 'sk-add-preview', 'fab fa-code')"><i class="fab fa-code" style="color: #f97316;"></i> HTML/JS</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('sk-icon', 'sk-add-preview', 'fas fa-comments')"><i class="fas fa-comments" style="color: #06b6d4;"></i> Communication</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('sk-icon', 'sk-add-preview', 'fas fa-people-group')"><i class="fas fa-people-group" style="color: #10b981;"></i> Teamwork</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('sk-icon', 'sk-add-preview', 'fas fa-crown')"><i class="fas fa-crown" style="color: #fbbf24;"></i> Leadership</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('sk-icon', 'sk-add-preview', 'fas fa-clock')"><i class="fas fa-clock" style="color: #38bdf8;"></i> Time Mgmt</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('sk-icon', 'sk-add-preview', 'fas fa-bolt')"><i class="fas fa-bolt" style="color: #facc15;"></i> Learning</button>
+          </div>
         </div>
       </div>
-      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Add Skill</button>
+
+      <div class="form-group">
+        <label class="form-label">Sort Order</label>
+        <input type="number" id="sk-order" class="form-control" value="0">
+      </div>
+
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem; padding: 0.85rem;">
+        <i class="fas fa-check"></i> Add Skill
+      </button>
     </form>
   `);
 
@@ -746,8 +840,14 @@ function openAddSkillModal() {
 
 function openEditSkillModal(s) {
   const currentCat = s.category || 'technical';
+  const initialIcon = (s.icon || '⚡').trim();
+  const isFA = initialIcon.includes('fa-') || initialIcon.startsWith('fa ') || initialIcon.startsWith('fab ') || initialIcon.startsWith('fas ');
+  const previewHtml = isFA ? `<i class="${initialIcon}"></i>` : `<span style="font-size: 1.8rem;">${initialIcon}</span>`;
+
   openCrudModal(`
-    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-pen"></i> Edit Skill / Competency</h3>
+    <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.6rem;">
+      <i class="fas fa-pen" style="color: var(--admin-accent);"></i> Edit Skill / Competency
+    </h3>
     <form id="edit-skill-form">
       <div class="form-row">
         <div class="form-group" style="flex: 1;">
@@ -759,33 +859,81 @@ function openEditSkillModal(s) {
         </div>
         <div class="form-group" style="flex: 2;">
           <label class="form-label">Skill Name *</label>
-          <input type="text" id="esk-name" class="form-control" value="${s.name}" required>
+          <input type="text" id="esk-name" class="form-control" value="${escapeAdminHtml(s.name)}" required>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group" style="flex: 2;">
-          <label class="form-label">FontAwesome Icon Class</label>
-          <input type="text" id="esk-icon" class="form-control" value="${s.icon || 'fas fa-cube'}">
-          <div class="icon-preset-picker">
-            <span style="font-size: 0.75rem; color: var(--admin-text-sub); width: 100%;">Popular Icon Presets:</span>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fab fa-python')"><i class="fab fa-python"></i> Python</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-wand-magic-sparkles')"><i class="fas fa-wand-magic-sparkles"></i> AI/Vibe</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fab fa-github')"><i class="fab fa-github"></i> Git/GitHub</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-chart-pie')"><i class="fas fa-chart-pie"></i> Power BI</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fab fa-code')"><i class="fab fa-code"></i> HTML/JS</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-comments')"><i class="fas fa-comments"></i> Communication</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-people-group')"><i class="fas fa-people-group"></i> Teamwork</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-crown')"><i class="fas fa-crown"></i> Leadership</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-clock')"><i class="fas fa-clock"></i> Time Mgmt</button>
-            <button type="button" class="icon-preset-chip" onclick="pickPresetIcon('esk-icon', 'fas fa-bolt')"><i class="fas fa-bolt"></i> Learning</button>
+
+      <!-- Live Preview & Main Icon/Emoji Field -->
+      <div class="form-group" style="background: rgba(255,255,255,0.03); border: 1px solid var(--admin-border); padding: 1.25rem; border-radius: 10px; margin-bottom: 1.25rem;">
+        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+          <span><strong>Skill Emoji or FontAwesome Class *</strong></span>
+          <span style="font-size: 0.75rem; color: var(--admin-text-sub);">Click any emoji or preset below</span>
+        </label>
+        
+        <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem;">
+          <div id="sk-edit-preview" class="skill-icon-preview-box">
+            ${previewHtml}
+          </div>
+          <div style="flex: 1;">
+            <input type="text" id="esk-icon" class="form-control" value="${escapeAdminHtml(s.icon || '⚡')}" oninput="updateSkillIconPreview('esk-icon', 'sk-edit-preview')" required>
           </div>
         </div>
-        <div class="form-group" style="flex: 1;">
-          <label class="form-label">Sort Order</label>
-          <input type="number" id="esk-order" class="form-control" value="${s.sort_order}">
+
+        <!-- 1. Dedicated EMOJI PICKER (as requested) -->
+        <div style="margin-top: 1rem;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--admin-accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem;">
+            😀 Quick Emoji Options (Click to choose):
+          </div>
+          <div class="emoji-preset-picker">
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '🐍')">🐍 Python</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '🤖')">🤖 AI/ML</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '✨')">✨ Vibe Coding</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '🐙')">🐙 Git/GitHub</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '📊')">📊 Power BI</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '💻')">💻 HTML/CSS/JS</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '🌐')">🌐 Web Dev</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '💬')">💬 Communication</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '👥')">👥 Teamwork</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '👑')">👑 Leadership</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '⏰')">⏰ Time Mgmt</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '⚡')">⚡ Quick Learning</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '🚀')">🚀 Full-Stack</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '🔥')">🔥 Modern Tech</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '🛡️')">🛡️ Cybersecurity</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '🧠')">🧠 Problem Solving</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '🎯')">🎯 Focus</button>
+            <button type="button" class="emoji-preset-chip" onclick="pickSkillEmoji('esk-icon', 'sk-edit-preview', '💡')">💡 Innovation</button>
+          </div>
+        </div>
+
+        <!-- 2. FontAwesome Class Alternative -->
+        <div style="margin-top: 1rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.8rem;">
+          <div style="font-size: 0.75rem; color: var(--admin-text-sub); margin-bottom: 0.35rem;">
+            Or select FontAwesome Brand Icon:
+          </div>
+          <div class="icon-preset-picker">
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('esk-icon', 'sk-edit-preview', 'fab fa-python')"><i class="fab fa-python" style="color: #38bdf8;"></i> Python</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('esk-icon', 'sk-edit-preview', 'fas fa-wand-magic-sparkles')"><i class="fas fa-wand-magic-sparkles" style="color: #f59e0b;"></i> AI/Vibe</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('esk-icon', 'sk-edit-preview', 'fab fa-github')"><i class="fab fa-github" style="color: #fff;"></i> GitHub</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('esk-icon', 'sk-edit-preview', 'fas fa-chart-pie')"><i class="fas fa-chart-pie" style="color: #eab308;"></i> Power BI</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('esk-icon', 'sk-edit-preview', 'fab fa-code')"><i class="fab fa-code" style="color: #f97316;"></i> HTML/JS</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('esk-icon', 'fas fa-comments')"><i class="fas fa-comments" style="color: #06b6d4;"></i> Communication</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('esk-icon', 'fas fa-people-group')"><i class="fas fa-people-group" style="color: #10b981;"></i> Teamwork</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('esk-icon', 'fas fa-crown')"><i class="fas fa-crown" style="color: #fbbf24;"></i> Leadership</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('esk-icon', 'fas fa-clock')"><i class="fas fa-clock" style="color: #38bdf8;"></i> Time Mgmt</button>
+            <button type="button" class="icon-preset-chip" onclick="pickSkillPresetIcon('esk-icon', 'fas fa-bolt')"><i class="fas fa-bolt" style="color: #facc15;"></i> Learning</button>
+          </div>
         </div>
       </div>
-      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Save Changes</button>
+
+      <div class="form-group">
+        <label class="form-label">Sort Order</label>
+        <input type="number" id="esk-order" class="form-control" value="${s.sort_order}">
+      </div>
+
+      <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem; padding: 0.85rem;">
+        <i class="fas fa-check"></i> Save Changes
+      </button>
     </form>
   `);
 
@@ -2053,8 +2201,52 @@ function openAddReviewModal() {
 }
 
 /* ==========================================================================
-   12 LUXURY THEMES SWITCHER
+   12 LUXURY THEMES & DISPLAY MODE CONTROLLER
    ========================================================================== */
+
+window.currentActiveTheme = 'midnight-blue';
+window.currentActiveMode = 'dark';
+
+function updateThemeAndModeUI() {
+  // Update Mode Badge in Themes Tab
+  const modeBadge = document.getElementById('active-mode-badge');
+  if (modeBadge) {
+    const isLight = window.currentActiveMode === 'light';
+    modeBadge.className = 'status-badge ' + (isLight ? 'featured' : 'approved');
+    modeBadge.innerHTML = isLight 
+      ? '<i class="fas fa-sun"></i> Light Mode Active'
+      : '<i class="fas fa-moon"></i> Dark Mode Active';
+  }
+
+  // Update Dark/Light buttons
+  const btnDark = document.getElementById('btn-mode-dark');
+  const btnLight = document.getElementById('btn-mode-light');
+  if (btnDark && btnLight) {
+    if (window.currentActiveMode === 'light') {
+      btnLight.className = 'admin-btn admin-btn-primary';
+      btnDark.className = 'admin-btn admin-btn-outline';
+    } else {
+      btnDark.className = 'admin-btn admin-btn-primary';
+      btnLight.className = 'admin-btn admin-btn-outline';
+    }
+  }
+
+  // Update Header Button
+  const headerModeIcon = document.getElementById('header-mode-icon');
+  const headerModeText = document.getElementById('header-mode-text');
+  if (headerModeIcon && headerModeText) {
+    const isLight = window.currentActiveMode === 'light';
+    headerModeIcon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+    headerModeText.textContent = isLight ? 'Light Mode' : 'Dark Mode';
+  }
+
+  // Update Theme Badge in Themes Tab
+  const themeBadgeName = document.getElementById('active-theme-name');
+  if (themeBadgeName) {
+    const foundTheme = THEMES_CONFIG.find(t => t.id === window.currentActiveTheme);
+    themeBadgeName.textContent = foundTheme ? foundTheme.name : window.currentActiveTheme;
+  }
+}
 
 function renderThemesGrid(activeId = 'midnight-blue') {
   const container = document.getElementById('themes-grid');
@@ -2069,7 +2261,7 @@ function renderThemesGrid(activeId = 'midnight-blue') {
       </div>
       <div class="theme-card-name">${t.name}</div>
       <div class="theme-card-desc">${t.desc}</div>
-      ${t.id === activeId ? '<span style="position: absolute; top: 8px; right: 8px; color: var(--admin-accent);"><i class="fas fa-circle-check"></i> Active</span>' : ''}
+      ${t.id === activeId ? '<span style="position: absolute; top: 8px; right: 8px; color: var(--admin-accent); font-weight: 700; font-size: 0.75rem;"><i class="fas fa-circle-check"></i> Active</span>' : ''}
     </div>
   `).join('');
 }
@@ -2079,7 +2271,12 @@ async function loadThemeSetting() {
     const res = await fetch('/api/theme');
     const result = await res.json();
     if (result.success && result.data) {
-      renderThemesGrid(result.data.active_theme || 'midnight-blue');
+      window.currentActiveTheme = result.data.active_theme || 'midnight-blue';
+      window.currentActiveMode = result.data.mode || 'dark';
+      document.documentElement.setAttribute('data-theme', window.currentActiveTheme);
+      document.documentElement.setAttribute('data-mode', window.currentActiveMode);
+      renderThemesGrid(window.currentActiveTheme);
+      updateThemeAndModeUI();
     }
   } catch (err) {
     console.error('Error loading theme:', err);
@@ -2088,10 +2285,11 @@ async function loadThemeSetting() {
 
 async function selectTheme(themeId) {
   try {
+    window.currentActiveTheme = themeId;
     const res = await fetch('/api/theme', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ active_theme: themeId })
+      body: JSON.stringify({ active_theme: themeId, mode: window.currentActiveMode || 'dark' })
     });
     const result = await res.json();
     if (result.success) {
@@ -2100,11 +2298,37 @@ async function selectTheme(themeId) {
       localStorage.setItem('komal_portfolio_theme_override', 'true');
       showToast(`Global theme updated to ${themeId.replace(/-/g, ' ').toUpperCase()}!`);
       renderThemesGrid(themeId);
+      updateThemeAndModeUI();
     }
   } catch (err) {
     showToast('Failed to update theme', 'error');
   }
 }
+
+window.setAdminMode = async function(mode) {
+  window.currentActiveMode = mode;
+  try {
+    const res = await fetch('/api/theme', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active_theme: window.currentActiveTheme, mode })
+    });
+    const result = await res.json();
+    if (result.success) {
+      document.documentElement.setAttribute('data-mode', mode);
+      localStorage.setItem('komal_portfolio_mode', mode);
+      updateThemeAndModeUI();
+      showToast(`Website switched to ${mode.toUpperCase()} mode!`);
+    }
+  } catch (err) {
+    showToast('Failed to switch mode', 'error');
+  }
+};
+
+window.toggleAdminMode = function() {
+  const nextMode = window.currentActiveMode === 'dark' ? 'light' : 'dark';
+  window.setAdminMode(nextMode);
+};
 
 /* ==========================================================================
    CUSTOM CONTENT BLOCKS CRUD
