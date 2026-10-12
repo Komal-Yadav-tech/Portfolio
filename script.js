@@ -133,15 +133,15 @@ function updateThemeToggleIcon() {
 async function fetchAndHydrateAll() {
   try {
     const [profileRes, skillsRes, projectsRes, eduRes, certsRes, reviewsRes, themeRes, customRes, expRes] = await Promise.allSettled([
-      fetch('/api/profile').then(r => r.json()),
-      fetch('/api/skills').then(r => r.json()),
-      fetch('/api/projects').then(r => r.json()),
-      fetch('/api/education').then(r => r.json()),
-      fetch('/api/certifications').then(r => r.json()),
-      fetch('/api/reviews').then(r => r.json()),
-      fetch('/api/theme').then(r => r.json()),
-      fetch('/api/custom-content').then(r => r.json()),
-      fetch('/api/experience').then(r => r.json())
+      fetch('/api/profile', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/skills', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/projects', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/education', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/certifications', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/reviews', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/theme', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/custom-content', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/experience', { cache: 'no-store' }).then(r => r.json())
     ]);
 
     if (themeRes.status === 'fulfilled' && themeRes.value.success && themeRes.value.data) {
