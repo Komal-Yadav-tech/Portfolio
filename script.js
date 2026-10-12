@@ -441,7 +441,6 @@ function hydrateSkills(skills) {
         <div class="skill-chip-icon">${renderSkillBadge(s.icon, 'fas fa-code')}</div>
         <div class="skill-chip-info">
           <span class="skill-chip-name">${s.name}</span>
-          <span class="skill-chip-sub">Technical Tool</span>
         </div>
       </div>
     `).join('');
@@ -455,7 +454,6 @@ function hydrateSkills(skills) {
         <div class="skill-chip-icon">${renderSkillBadge(s.icon, 'fas fa-brain')}</div>
         <div class="skill-chip-info">
           <span class="skill-chip-name">${s.name}</span>
-          <span class="skill-chip-sub">Core Competency</span>
         </div>
       </div>
     `).join('');
