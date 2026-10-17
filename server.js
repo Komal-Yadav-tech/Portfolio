@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -6,7 +7,7 @@ const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
-const { db, runQuery, getQuery, allQuery } = require('./database');
+const { db, runQuery, getQuery, allQuery, getGridFSBucket, saveFileToGridFS } = require('./database');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -39,6 +40,27 @@ app.use('/api', (req, res, next) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
+  next();
+});
+
+// Stream from MongoDB GridFS if file is missing on local ephemeral container
+app.get('/uploads/:folder/:filename', (req, res, next) => {
+  const localPath = path.join(__dirname, 'uploads', req.params.folder, req.params.filename);
+  if (fs.existsSync(localPath)) {
+    return next();
+  }
+  const bucket = getGridFSBucket();
+  if (bucket) {
+    try {
+      const downloadStream = bucket.openDownloadStreamByName(req.params.filename);
+      downloadStream.on('error', () => next());
+      const writeStream = fs.createWriteStream(localPath);
+      downloadStream.pipe(writeStream);
+      return downloadStream.pipe(res);
+    } catch (e) {
+      return next();
+    }
+  }
   next();
 });
 
@@ -192,12 +214,15 @@ app.put('/api/profile', authenticateToken, upload.fields([
 
     if (req.files && req.files['profile_image_file']) {
       profile_image = '/uploads/images/' + req.files['profile_image_file'][0].filename;
+      saveFileToGridFS(req.files['profile_image_file'][0].filename, req.files['profile_image_file'][0].path).catch(() => {});
     }
     if (req.files && req.files['resume_file']) {
       resume_url = '/uploads/documents/' + req.files['resume_file'][0].filename;
+      saveFileToGridFS(req.files['resume_file'][0].filename, req.files['resume_file'][0].path).catch(() => {});
     }
     if (req.files && req.files['footer_media_file']) {
       footer_media = '/uploads/images/' + req.files['footer_media_file'][0].filename;
+      saveFileToGridFS(req.files['footer_media_file'][0].filename, req.files['footer_media_file'][0].path).catch(() => {});
     }
 
     if (profile) {
@@ -425,6 +450,9 @@ app.post('/api/projects', authenticateToken, upload.single('media_file'), async 
     let media_url = req.body.media_url || '';
     if (req.file) {
       media_url = '/uploads/images/' + req.file.filename;
+      saveFileToGridFS(req.file.filename, req.file.path).catch(err => {
+        console.error('Failed to sync project image to GridFS:', err.message);
+      });
     }
     if (!title || !category) {
       return res.status(400).json({ success: false, message: 'Title and category required' });
@@ -449,6 +477,9 @@ app.put('/api/projects/:id', authenticateToken, upload.single('media_file'), asy
     let media_url = req.body.media_url || existing.media_url;
     if (req.file) {
       media_url = '/uploads/images/' + req.file.filename;
+      saveFileToGridFS(req.file.filename, req.file.path).catch(err => {
+        console.error('Failed to sync project image to GridFS:', err.message);
+      });
     }
     const { title, category, description, live_url, github_url, featured, sort_order, media_type } = req.body;
 
@@ -733,6 +764,9 @@ app.post('/api/certifications', authenticateToken, upload.single('image_file'), 
     let image_url = req.body.image_url || '';
     if (req.file) {
       image_url = '/uploads/images/' + req.file.filename;
+      saveFileToGridFS(req.file.filename, req.file.path).catch(err => {
+        console.error('Failed to sync cert image to GridFS:', err.message);
+      });
     }
     if (!title || !issuer) {
       return res.status(400).json({ success: false, message: 'Title and issuer required' });
@@ -757,6 +791,9 @@ app.put('/api/certifications/:id', authenticateToken, upload.single('image_file'
     let image_url = req.body.image_url || existing.image_url;
     if (req.file) {
       image_url = '/uploads/images/' + req.file.filename;
+      saveFileToGridFS(req.file.filename, req.file.path).catch(err => {
+        console.error('Failed to sync cert image to GridFS:', err.message);
+      });
     }
     const { title, issuer, issue_date, credential_url, sort_order } = req.body;
     await runQuery(
@@ -1044,6 +1081,10 @@ app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => 
   const isImg = req.file.mimetype.startsWith('image/');
   const folder = isImg ? 'images' : 'documents';
   const fileUrl = `/uploads/${folder}/${req.file.filename}`;
+  // Persist to MongoDB GridFS in background for cloud durability
+  saveFileToGridFS(req.file.filename, req.file.path).catch(err => {
+    console.error('Failed to sync uploaded file to GridFS:', err.message);
+  });
   res.json({ success: true, url: fileUrl, filename: req.file.filename });
 });
 
